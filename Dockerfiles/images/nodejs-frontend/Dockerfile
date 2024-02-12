@@ -1,0 +1,4 @@
+FROM nodejs:latest
+
+EXPOSE 80
+EXPOSE 443
