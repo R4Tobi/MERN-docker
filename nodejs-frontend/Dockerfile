@@ -13,3 +13,5 @@ COPY ./frontend/nodejs/ /src/
 CMD ["node", "server.js"]
 
 EXPOSE 80
+
+HEALTHCHECK CMD curl --fail http://localhost:80/health || exit 1
