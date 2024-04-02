@@ -12,11 +12,16 @@ services:
     build: ./nodejs-backend/
     ports:
       - 8080:8080
+    volumes:
+      - ./nodejs-backend/backend/:/src/
 
   nodejs-frontend:
     build: ./nodejs-frontend/
     ports:
       - 80:80
+    volumes:
+      - ./nodejs-frontend/frontend/vuejs/dist/:/src/public/
+      - ./nodejs-frontend/frontend/nodejs/:/src/
 
 volumes:
   dbdata:
