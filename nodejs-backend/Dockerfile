@@ -4,7 +4,7 @@ WORKDIR /src
 COPY ./backend/package.json ./backend/package-lock.json /src/ 
 RUN npm install --production
 
-COPY ./backend/ /src
+COPY ./backend/ /src/
 
 EXPOSE 8080
 
