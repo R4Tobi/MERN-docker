@@ -1,15 +1,17 @@
-const http = require("node:http");
+var express = require("express");
+var path = require("path");
+var serveStatic = require("serve-static");
 
-const hostname = "0.0.0.0";
+app = express();
+app.use(serveStatic(__dirname + "/public"));
 
-const port = 80;
+app.get("/health", (req, res) => {
+  res.end("server is running!");
+})
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Hello World\n");
-});
+var port = 80;
+var hostname = "0.0.0.0";
 
-server.listen(port, hostname, () => {
+app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
