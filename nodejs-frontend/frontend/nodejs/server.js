@@ -19,5 +19,5 @@ var port = 80;
 var hostname = "0.0.0.0";
 
 app.listen(port, hostname, () => {
-  console.log(`Server running on port ${port}/`);
+  console.log(`Server running on port ${port}`);
 });
