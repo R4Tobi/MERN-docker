@@ -2,12 +2,12 @@
 * Imports
 */
 var express = require("express");
+const session = require("express-session");
 var path = require("path");
+var bcrypt = require("bcrypt")
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const { UUID } = require("bson");
-
-const bodyParser = require('body-parser'); // Middleware
 
 /*
 * Database 
@@ -26,7 +26,15 @@ database
 app = express();
 
 //Middleware
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(
+  session({
+    secret: "secretKey",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60 * 60 * 1000 }, // 60 minutes
+  })
+);
 
 //Log every incoming Query
 app.use(function (req, res, next) {
@@ -36,67 +44,140 @@ app.use(function (req, res, next) {
 
 //HealthCheck Docker
 app.get("/health", (req, res) => {
-  res.send("{ success: true, message: \"Everything is working fine\"}");
+  res.json(
+    { 
+      success: true, 
+      message: "Everything is working fine" 
+    }
+  );
 });
 
 /*
 * API Calls
 */
-app.post("/login", (req, res) => {
-  let username = req.body.username;
-  let password = req.body.password;
-});
-
+//register
 app.post("/register", async (req, res) => {
   const data = req.body;
-  if(data.username && data.password && data.name){
+  if (data.username && data.password && data.name) {
+    if (data.username.includes(":")) {
+      res.status(400).json({
+        message: "Bad Request",
+        error: "invalid character in username",
+        errno: 103
+      });
+    }
     //get the accounts collection of the mongodb database
     const collection = database.db("main").collection("accounts");
+    //hash password
+    const saltRounds = 10;
+    const salt = bcrypt.genSaltSync(saltRounds);
+    const hash = bcrypt.hashSync(data.password, salt);
     //insert new account into collection
-    try{
+    try {
       const result = await collection.insertOne({
         _id: data.username,
         username: data.username,
-        password: data.password,
+        password: hash,
         fullName: data.name
       });
       console.log(
         `REGISTER: New Account added to MongoDB. ID: ${result.insertedId}`
       );
       res.status(200).send(JSON.stringify({ message: "Success" }));
-    }catch (e) {
-      const errno = e.message.substring(0,5);
-      switch(errno){
+    } catch (e) {
+      const errno = e.message.substring(0, 5);
+      switch (errno) {
         case "E1100":
-            res
-              .status(400)
-              .send(
-                JSON.stringify({
-                  message: "Bad Request",
-                  error: "username is already used",
-                  errno: 102
-                })
-              );
+          res.status(400).json({
+            message: "Bad Request",
+            error: "username is already used",
+            errno: 102
+          });
           break;
       }
     }
+  } else {
+    res.status(400).json({
+      message: "Bad Request",
+      error: "missing data for registration",
+      errno: 101
+    });
+  }
+});
+
+//login
+app.post("/login", async (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+
+  //get the accounts collection of the mongodb database
+  const collection = database.db("main").collection("accounts");
+  //find user and compare passwords
+  const user = await collection.findOne({ username: username });
+  if (user === null){
+    res.status(403).json(
+      {
+        message: "Bad Credentials",
+        error: "wrong username or password",
+        errno: 201
+      }
+    );
+    return;
+  }
+  //compare hash values
+  const result = bcrypt.compareSync(password, user.password);
+  if (result == true) {
+    req.session.userId = btoa(user._id + ":" + Date.now());
+    res.status(200).json(
+      {
+        message: "Success"
+      }
+    );
   }else{
-    res
-      .status(400)
-      .send(
-        JSON.stringify({
-          message: "Bad Request",
-          error: "missing data for registration",
-          errno: 101
-        })
-      );
+    res.status(403).send(
+      JSON.stringify({
+        message: "Bad Credentials",
+        error: "wrong username or password",
+        errno: 201
+      })
+    );
+  }
+});
+
+//logout
+app.post("/logout", (req, res) => {
+  // Destroy the session to log the user out
+  req.session.destroy();
+  // Send a success response
+  res.json({ message: "Logged out successfully" });
+});
+
+//test
+app.post("/test", (req, res) => {
+  if(req.session.userId){
+    const user = atob(req.session.userId).split(":");
+    res.status(200).json({
+      message: "Authorized",
+      user: user[0],
+      timestamp: user[1],
+      data: []
+    });
+  }else{
+    res.status(401).json(
+      {
+        message: "Unauthorized",
+        error: "Session Expired or Invalid",
+        errno: 301
+      }
+    );
   }
 })
 
-app.post("/test", (req, res) => {
-
-
-})
+// Fallback-Handler für alle anderen Pfade
+app.use((req, res) => {
+  console.log(`${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}, status 404`);
+  res.status(404).json({message: "Path not Found", error: "The path requested by the client does not exist.", errno: 404});
+});
 
 var port = 8080;
 var hostname = "0.0.0.0";
