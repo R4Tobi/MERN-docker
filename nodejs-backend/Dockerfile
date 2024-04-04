@@ -1,10 +1,11 @@
 FROM node:18-alpine
 
 WORKDIR /src
-COPY ./backend/package.json ./backend/package-lock.json /src/ 
-RUN npm install --production
+COPY ./backend/package.json /src/package.json
+COPY ./backend/package-lock.json /src/package-lock.json
+RUN npm install
 
-COPY ./backend/ /src/
+COPY ./backend/server.js /src/server.js
 
 EXPOSE 8080
 
