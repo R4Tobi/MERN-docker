@@ -25,8 +25,8 @@ services:
     volumes:
       - ./nodejs-backend/backend/server.js:/src/server.js
 
-  nodejs-frontend:
-    build: ./nodejs-frontend/
+  reactjs-frontend:
+    build: ./reactjs-frontend/
     ports:
       - 80:80
     volumes:
