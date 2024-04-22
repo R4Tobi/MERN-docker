@@ -78,7 +78,8 @@ app.post("/register", async (req, res) => {
         _id: data.username,
         username: data.username,
         password: hash,
-        fullName: data.name
+        fullName: data.name,
+        role : ["user"]
       });
       console.log(
         `REGISTER: New Account added to MongoDB. ID: ${result.insertedId}`

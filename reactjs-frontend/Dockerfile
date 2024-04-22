@@ -7,7 +7,7 @@ COPY package.json /app
 
 RUN npm install
 
-COPY . /app
+COPY ./reactjs /app
 
 RUN npm run build
 
@@ -17,7 +17,7 @@ WORKDIR /usr/local/bin
 
 COPY --from=prod /app/build /usr/share/nginx/html
 
-COPY generate-config.sh .
+COPY ./nginx/generate-config.sh .
 
 COPY custom-nginx.template /etc/nginx/conf.d/
 
