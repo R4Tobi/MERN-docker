@@ -1,28 +1,16 @@
 # frontend/Dockerfile
-FROM node:16.3.0-alpine AS prod
+FROM node:21-bookworm AS prod
 
 WORKDIR /app
 
-COPY package.json /app
+COPY ./reactjs/package.json /app
+COPY ./pm2/ecosystem.config.js /app
 
 RUN npm install
+RUN npm install pm2 -g
 
-COPY ./reactjs /app
+COPY ./reactjs/ /app/
 
-RUN npm run build
+EXPOSE 3000
 
-FROM nginx:alpine
-
-WORKDIR /usr/local/bin
-
-COPY --from=prod /app/build /usr/share/nginx/html
-
-COPY ./nginx/generate-config.sh .
-
-COPY custom-nginx.template /etc/nginx/conf.d/
-
-RUN chmod +x generate-config.sh
-
-EXPOSE 80
-
-ENTRYPOINT [ "/bin/sh", "generate-config.sh"]
+ENTRYPOINT ["pm2", "start", "ecosystem.config.js"]

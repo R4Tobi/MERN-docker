@@ -27,7 +27,7 @@ services:
   reactjs-frontend:
     build: ./reactjs-frontend/
     ports:
-      - 80:80
+      - 80:3000
     volumes:
       - ./nodejs-frontend/frontend/vuejs/dist/:/src/public/
       - ./nodejs-frontend/frontend/nodejs/:/src/
