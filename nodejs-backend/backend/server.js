@@ -12,7 +12,7 @@ const { UUID } = require("bson");
 /*
 * Database 
 */
-var database = new MongoClient("mongodb://dbadmin:password@mongodb:27017", {
+var database = new MongoClient("mongodb://root:password@mongodb:27017", {
   pkFactory: { createPk: () => new UUID.toBinary() }
 });
 database

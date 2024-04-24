@@ -1,18 +1,17 @@
 <template>
   <NavHeader />
   <router-view />
-  <NavFooter />
 </template>
 
 <script>
 import NavHeader from './components/NavHeader.vue'
-import NavFooter from './components/NavFooter.vue'
+//import NavFooter from './components/NavFooter.vue'
 
 export default {
   name: 'App',
   components: {
     NavHeader,
-    NavFooter,
+    //NavFooter,
   }
 }
 </script>
