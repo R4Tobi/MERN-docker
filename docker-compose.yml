@@ -20,18 +20,16 @@ services:
 
   nodejs-backend:
     build: ./nodejs-backend/
-    ports:
-      - 8080:8080
+    hostname: "backend"
     volumes:
       - ./nodejs-backend/backend/server.js:/src/server.js
 
-  reactjs-frontend:
-    build: ./reactjs-frontend/
+  vuejs-frontend:
+    build: ./vuejs-frontend/
     ports:
       - 80:80
     volumes:
-      - ./nodejs-frontend/frontend/vuejs/dist/:/src/public/
-      - ./nodejs-frontend/frontend/nodejs/:/src/
+      - ./vuejs-frontend/vue/dist/:/usr/share/nginx/html/
 
 volumes:
   dbdata:
