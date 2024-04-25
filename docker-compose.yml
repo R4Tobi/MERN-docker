@@ -21,6 +21,8 @@ services:
   nodejs-backend:
     build: ./nodejs-backend/
     hostname: "backend"
+    ports:
+      - 8080:8080
     volumes:
       - ./nodejs-backend/backend/server.js:/src/server.js
 

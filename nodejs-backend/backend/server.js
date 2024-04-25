@@ -3,7 +3,7 @@
 */
 var express = require("express");
 const session = require("express-session");
-var path = require("path");
+var cors = require("cors");
 var bcrypt = require("bcrypt")
 
 const { MongoClient, ObjectId } = require("mongodb");
@@ -27,6 +27,13 @@ app = express();
 
 //Middleware
 app.use(express.json());
+
+const corsOptions = {
+  origin: "http://localhost/", //(https://your-client-app.com)
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
 app.use(
   session({
     secret: "secretKey",
@@ -52,11 +59,18 @@ app.get("/health", (req, res) => {
   );
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Everything is working fine"
+  });
+});
+
 /*
 * API Calls
 */
 //register
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   const data = req.body;
   if (data.username && data.password && data.name) {
     if (data.username.includes(":")) {
@@ -107,7 +121,7 @@ app.post("/register", async (req, res) => {
 });
 
 //login
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
@@ -129,6 +143,10 @@ app.post("/login", async (req, res) => {
   const result = bcrypt.compareSync(password, user.password);
   if (result == true) {
     req.session.userId = btoa(user._id + ":" + Date.now());
+    res.cookie("authenticated", true, {
+      maxAge: 1,
+      httpOnly: true
+    });
     res.status(200).json(
       {
         message: "Success"
@@ -146,7 +164,7 @@ app.post("/login", async (req, res) => {
 });
 
 //logout
-app.post("/logout", (req, res) => {
+app.post("/api/logout", (req, res) => {
   // Destroy the session to log the user out
   req.session.destroy();
   // Send a success response
