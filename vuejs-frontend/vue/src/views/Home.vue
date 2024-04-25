@@ -3,14 +3,14 @@
     <div class="form">
       <p class="form-title">Anmelden</p>
       <div class="input-container">
-        <input type="email" placeholder="Benutzer">
+        <input type="text" id="username" placeholder="Benutzer">
         <span>
         </span>
       </div>
       <div class="input-container">
-        <input type="password" placeholder="Passwort">
+        <input type="password" id="password" placeholder="Passwort">
       </div>
-      <button type="submit" class="submit">
+      <button @click="this.login()" class="submit">
         Anmelden
       </button>
 
@@ -23,9 +23,18 @@
 </template>
 
 <script>
+import Login from "../scripts/Login.js";
+
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Home',
+  methods: {
+    login(){
+      const username = document.querySelector("#username").value;
+      const password = document.querySelector("#password").value;
+      new Login().login(username, password);
+    }
+  }
 }
 </script>
 
