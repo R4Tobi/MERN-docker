@@ -4,19 +4,23 @@
       <p class="form-title">Anmelden</p>
       <div class="input-container">
         <input type="text" id="username" placeholder="Benutzername">
-        <span>
-        </span>
+      </div>
+      <div class="input-container">
+        <input type="text" id="fullname" placeholder="Voller Name">
       </div>
       <div class="input-container">
         <input type="password" id="password" placeholder="Passwort">
       </div>
-      <button @click="this.login()" class="submit">
-        Anmelden
+      <div class="input-container">
+        <input type="password" id="password_c" placeholder="Passwort bestätigen">
+      </div>
+      <button @click="this.register()" class="submit">
+        Registrieren
       </button>
 
       <p class="signup-link">
-        Noch kein Konto?
-        <a href="/#/register">Registrieren</a>
+        Bereits einen Account?
+        <a href="/#/login">Anmelden</a>
       </p>
     </div>
   </div>
@@ -30,37 +34,21 @@ export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Home',
   methods: {
-    checkQuery(){
-      const searchParams = new URLSearchParams(window.location.toString().split("?")[1]);
-      const message = searchParams.get('message');
-      switch(message){
-        case "registrationSuccessful":
-          new Toast().showAlert({type: "erfolg", message: "Registrierung erfolgreich. Sie können sich jetzt anmelden."});
-          break;
-        case "sessionExpired":
-          new Toast().showAlert({type: "info", message: "Ihre Sizung ist abgelaufen oder ungültig. Melden Sie sich erneut an."});
-          break;
-        default:
-          break;
-      }
-    },
-    login(){
+    register(){
       const username = document.querySelector("#username").value;
+      const fullName = document.querySelector("#fullname").value;
       const password = document.querySelector("#password").value;
-      new User().login(username, password)
+      const password_c = document.querySelector("#password_c").value;
+      new User().register(username, fullName, password, password_c)
       .then(
-        (data) => {
-          new Toast().showAlert(data);
-          window.open("/#/profile", "_self")
+        () => {
+          setTimeout(() => window.open("/#/home?message=registrationSuccessful", "_self"));
         },
         (data) => {
           new Toast().showAlert(data);
         }
       );
     }
-  },
-  mounted(){
-    this.checkQuery();
   }
 }
 </script>

@@ -5,20 +5,21 @@
 </template>
 
 <script>
-import Cookie from "../scripts/Cookie.js";
+import User from "../scripts/User.js";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'PersonalProfile',
   methods: {
     init(){
-      this.checkLogin();
+      this.checkAuth();
     },
-    checkLogin(){
-      const cookie = new Cookie().getCookie("authenticated");
-      if(cookie != "true"){
-        window.open("/#/home", "_self")
-      }
+    checkAuth(){
+      new User().checkAuth()
+      .then(
+        (data) => {console.log(data)},
+        () => {window.open("/#/home?message=sessionExpired")}
+      );
     }
   },
   mounted(){
