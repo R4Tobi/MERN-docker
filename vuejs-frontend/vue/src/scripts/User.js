@@ -116,6 +116,10 @@ class User {
         "Content-Type",
         "application/json;charset=UTF-8"
       );
+      httpRequest.setRequestHeader(
+        "Access-Control-Allow-Origin",
+        "http://localhost:8080"
+      );
 
       httpRequest.send();
 
@@ -126,7 +130,7 @@ class User {
               type: "erfolg",
               message: "Sitzung ist gültig"
             });
-          } else {
+          } else if(this.status === 401){
             reject({
               type: "fehler",
               message: "Sitzung ist abgelaufen"
