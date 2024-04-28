@@ -18,7 +18,7 @@ export default {
       new User().checkAuth()
       .then(
         (data) => {console.log(data)},
-        () => {window.open("/#/home?message=sessionExpired")}
+        () => {window.open("/#/home?message=sessionExpired", "_self")}
       );
     }
   },
@@ -29,6 +29,6 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="css" scoped>
+<style lang="scss" scoped>
 @import "../stylesheets/main.scss";
 </style>

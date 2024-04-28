@@ -55,5 +55,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-@import "../stylesheets/main.scss"
+@import "../stylesheets/main.scss";
 </style>
