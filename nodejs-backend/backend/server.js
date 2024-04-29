@@ -3,7 +3,7 @@
  */
 var express = require("express");
 const session = require("express-session");
-var path = require("path");
+var cors = require("cors");
 var bcrypt = require("bcrypt")
 var cors = require("cors");
 var bcrypt = require("bcrypt");
@@ -31,6 +31,15 @@ const app = express();
 
 //Middleware
 app.use(express.json());
+
+app.use(
+  session({
+    secret: "secretKey",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60 * 60 * 1000 }, // 60 minutes
+  })
+);
 
 const corsOptions = {
   origin: "http://localhost", //(https://your-client-app.com)
@@ -87,13 +96,20 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Everything is working fine"
+  });
+});
+
 /*
 *
 *  API Calls
 *
 */
 //register
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   const data = req.body;
 
   const password_valid = data.password == data.password_c;
@@ -159,7 +175,7 @@ app.post("/register", async (req, res) => {
 });
 
 //login
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
@@ -178,11 +194,17 @@ app.post("/login", async (req, res) => {
   //compare hash values
   const result = bcrypt.compareSync(password, user.password);
   if (result == true) {
-    req.session.username = username;
-    res.status(200).json({
-      message: "Success"
+    req.session.userId = btoa(user._id + ":" + Date.now());
+    res.cookie("authenticated", true, {
+      maxAge: 1,
+      httpOnly: true
     });
-  } else {
+    res.status(200).json(
+      {
+        message: "Success"
+      }
+    );
+  }else{
     res.status(403).send(
       JSON.stringify({
         message: "Bad Credentials",
@@ -194,7 +216,7 @@ app.post("/login", async (req, res) => {
 });
 
 //logout
-app.post("/logout", (req, res) => {
+app.post("/api/logout", (req, res) => {
   // Destroy the session to log the user out
   req.session.destroy();
   // Send a success response
