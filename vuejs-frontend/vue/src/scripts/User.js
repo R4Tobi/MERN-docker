@@ -1,3 +1,5 @@
+import Cookie from "./Cookie.js";
+
 class User {
   constructor(username, password) {
     this.username = username;
@@ -27,6 +29,7 @@ class User {
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {
           if (this.status === 200) {
+            new Cookie().setCookie("username", username, Date.now() + 30*60*1000);
             resolve({ 
               type: "erfolg", 
               message: "Anmeldung erfolgreich" 
@@ -111,7 +114,7 @@ class User {
       const url = "http://localhost:8080/api/session";
       const httpRequest = new XMLHttpRequest();
 
-      httpRequest.open("GET", url);
+      httpRequest.open("POST", url);
       httpRequest.setRequestHeader(
         "Content-Type",
         "application/json;charset=UTF-8"
@@ -121,7 +124,8 @@ class User {
         "http://localhost:8080"
       );
 
-      httpRequest.send();
+      const username = new Cookie().getCookie("username");
+      httpRequest.send(JSON.stringify({username:username}));
 
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {
@@ -146,7 +150,7 @@ class User {
       const url = "http://localhost:8080/api/profile";
       const httpRequest = new XMLHttpRequest();
 
-      httpRequest.open("GET", url);
+      httpRequest.open("POST", url);
       httpRequest.setRequestHeader(
         "Content-Type",
         "application/json;charset=UTF-8"
@@ -156,7 +160,8 @@ class User {
         "http://localhost:8080"
       );
 
-      httpRequest.send();
+      const username = new Cookie().getCookie("username");
+      httpRequest.send(JSON.stringify({username:username}));
 
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {

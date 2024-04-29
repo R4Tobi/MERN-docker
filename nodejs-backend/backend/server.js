@@ -2,9 +2,7 @@
  * Imports
  */
 var express = require("express");
-const session = require("express-session");
-var cors = require("cors");
-var bcrypt = require("bcrypt")
+var session = require("express-session");
 var cors = require("cors");
 var bcrypt = require("bcrypt");
 var fs = require("fs");
@@ -12,11 +10,13 @@ var https = require("https");
 
 const { MongoClient, ObjectId } = require("mongodb");
 const { UUID } = require("bson");
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 /*
 * Database 
 */
-var database = new MongoClient("mongodb://root:password@mongodb:27017", {
+const MONGODB_URI = "mongodb://root:password@mongodb:27017";
+var database = new MongoClient(MONGODB_URI, {
   pkFactory: { createPk: () => new UUID.toBinary() }
 });
 database
@@ -32,44 +32,64 @@ const app = express();
 //Middleware
 app.use(express.json());
 
-app.use(
-  session({
-    secret: "secretKey",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 60 * 60 * 1000 }, // 60 minutes
-  })
-);
-
 const corsOptions = {
   origin: "http://localhost", //(https://your-client-app.com)
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 
-const sessionOptions = {
-  name: "session",
-  secret: "secretKey",
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    maxAge:  4 * 60 * 60 * 1000, // 60 minutes
-  }
-};
-app.use(session(sessionOptions));
-
 /*
 *
 *  SESSION HANDLING
 *
 */
-const requireAuth = (req, res, next) => {
-  if (req.session.username) {
-    next(); // User is authenticated, continue to next middleware
-  } else {
-    res.status(401).send("error"); // User is not authenticated, redirect to login page
+const requireAuth = async (req, res, next) => {
+  if(!req.body.username){
+    res.status(401).send("No Session can be retrieved, if no user is given.")
+  }else{
+    try{
+      const session = await database.db("main").collection("sessions").findOne({username: req.body.username});
+      if(session === null){
+        res.status(401).send("No Session found for User " + req.body.username)
+      }else if (session.expires <= Date.now()){
+        await database.db("main").collection("sessions").deleteOne({ username: session.username});
+        res.status(401).send("Session expired");
+      }else if(session.username === req.body.username){
+        next();
+      }
+    }catch(e){
+      res.status(401).send("No Session found for User " + req.body.username)
+    }
   }
 };
+
+async function createSession(user){
+  const collection = database.db("main").collection("sessions");
+  try {
+    await collection.insertOne({
+      _id: user.username,
+      username: user.username,
+      roles: user.roles,
+      expires: Date.now() + (30 * 60 * 1000)
+    });
+    console.log("SESSION: created new Session for User " + user.username)
+  } catch (e) {
+    const errno = e.message.substring(0, 6);
+      switch (errno) {
+        case "E11000":
+          console.log("Duplicate Session E11000")
+          break;
+      }
+  }
+};
+
+async function destroySession(username){
+  try{
+    database.db("main").collection("sessions").deleteOne({ username: username});
+  }catch(e){
+    console.log("SESSION: removed from " + username)
+  }
+}
 
 /*
 *
@@ -86,7 +106,7 @@ app.use(function (req, res, next) {
 
 /*
 *
-*  GET REQUESTS
+*  GET REQUESTS (docs/health)
 *
 */
 app.get("/health", (req, res) => {
@@ -193,12 +213,14 @@ app.post("/api/login", async (req, res) => {
   }
   //compare hash values
   const result = bcrypt.compareSync(password, user.password);
-  if (result == true) {
-    req.session.userId = btoa(user._id + ":" + Date.now());
-    res.cookie("authenticated", true, {
-      maxAge: 1,
-      httpOnly: true
-    });
+  if (result === true) {
+    try{
+      createSession(user);
+    }catch(e){
+      const errno = e.message.substring(0, 5);
+      console.log(errno)
+    }
+
     res.status(200).json(
       {
         message: "Success"
@@ -218,18 +240,19 @@ app.post("/api/login", async (req, res) => {
 //logout
 app.post("/api/logout", (req, res) => {
   // Destroy the session to log the user out
-  req.session.destroy();
+  destroySession(req.body.username)
   // Send a success response
   res.json({ message: "Logged out successfully" });
 });
 
 //test
-app.get("/api/session", requireAuth,  (req, res) => {
-console.log(req.session)
+app.post("/api/session", requireAuth,  (req, res) => {
+  res.status(200).send("Session is valid.")
 });
 
-app.get("/api/profile", requireAuth, (req, res) => {
-
+app.post("/api/profile", requireAuth, async (req, res) => {
+  const user = await database.db("main").collection("accounts").findOne({username: req.body.username});
+  res.status(200).send(user);
 });
 
 // Fallback-Handler für alle anderen Pfade
