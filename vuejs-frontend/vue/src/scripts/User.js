@@ -91,7 +91,7 @@ class User {
           } else if (this.status === 406){
             reject({
               type: "fehler",
-              message: "Die Passwörter stimmen nicht überein"
+              message: JSON.parse(this.response).errdsc
             });
           }
         }
