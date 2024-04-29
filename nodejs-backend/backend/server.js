@@ -1,10 +1,14 @@
-/* 
-* Imports
-*/
+/*
+ * Imports
+ */
 var express = require("express");
 const session = require("express-session");
 var cors = require("cors");
 var bcrypt = require("bcrypt")
+var cors = require("cors");
+var bcrypt = require("bcrypt");
+var fs = require("fs");
+var https = require("https");
 
 const { MongoClient, ObjectId } = require("mongodb");
 const { UUID } = require("bson");
@@ -18,21 +22,15 @@ var database = new MongoClient("mongodb://root:password@mongodb:27017", {
 database
   .connect()
   .then(() => console.log("DB: Connected Successfully to MongoDB Instance"))
-  .catch(() => console.log("DB: Connection to MongoDB Instance failed"))
+  .catch(() => console.log("DB: Connection to MongoDB Instance failed"));
 
 /*
-* App
-*/
-app = express();
+ * App
+ */
+const app = express();
 
 //Middleware
 app.use(express.json());
-
-const corsOptions = {
-  origin: "http://localhost/", //(https://your-client-app.com)
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
 
 app.use(
   session({
@@ -43,20 +41,59 @@ app.use(
   })
 );
 
+const corsOptions = {
+  origin: "http://localhost", //(https://your-client-app.com)
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+const sessionOptions = {
+  name: "session",
+  secret: "secretKey",
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    maxAge:  4 * 60 * 60 * 1000, // 60 minutes
+  }
+};
+app.use(session(sessionOptions));
+
+/*
+*
+*  SESSION HANDLING
+*
+*/
+const requireAuth = (req, res, next) => {
+  if (req.session.username) {
+    next(); // User is authenticated, continue to next middleware
+  } else {
+    res.status(401).send("error"); // User is not authenticated, redirect to login page
+  }
+};
+
+/*
+*
+*  LOGGING
+*
+*/
 //Log every incoming Query
 app.use(function (req, res, next) {
-  console.log(`${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}`);
+  console.log(
+    `${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}`
+  );
   next();
 });
 
-//HealthCheck Docker
+/*
+*
+*  GET REQUESTS
+*
+*/
 app.get("/health", (req, res) => {
-  res.json(
-    { 
-      success: true, 
-      message: "Everything is working fine" 
-    }
-  );
+  res.json({
+    success: true,
+    message: "Everything is working fine"
+  });
 });
 
 app.get("/api/health", (req, res) => {
@@ -67,12 +104,18 @@ app.get("/api/health", (req, res) => {
 });
 
 /*
-* API Calls
+*
+*  API Calls
+*
 */
 //register
 app.post("/api/register", async (req, res) => {
   const data = req.body;
-  if (data.username && data.password && data.name) {
+
+  const password_valid = data.password == data.password_c;
+  const data_valid = data.username.length > 1 && data.password.length > 7 && data.fullName.length > 1;
+
+  if (data_valid && password_valid) {
     if (data.username.includes(":")) {
       res.status(400).json({
         message: "Bad Request",
@@ -92,8 +135,8 @@ app.post("/api/register", async (req, res) => {
         _id: data.username,
         username: data.username,
         password: hash,
-        fullName: data.name,
-        role : ["user"]
+        fullName: data.fullName,
+        role: ["user"]
       });
       console.log(
         `REGISTER: New Account added to MongoDB. ID: ${result.insertedId}`
@@ -103,7 +146,7 @@ app.post("/api/register", async (req, res) => {
       const errno = e.message.substring(0, 5);
       switch (errno) {
         case "E1100":
-          res.status(400).json({
+          res.status(409).json({
             message: "Bad Request",
             error: "username is already used",
             errno: 102
@@ -112,9 +155,20 @@ app.post("/api/register", async (req, res) => {
       }
     }
   } else {
-    res.status(400).json({
+    let errdsc = "";
+    let errstatus = 0;
+    if (!password_valid) {
+      errdsc += "Die Passwörter stimmen nicht überein. ";
+      errstatus = 406;
+    }
+    if (!data_valid) {
+      errdsc += "Die angegebenen Daten entsprechen nicht den Richtlinien";
+      errstatus = 406;
+    }
+
+    res.status(errstatus).json({
       message: "Bad Request",
-      error: "missing data for registration",
+      error: errdsc,
       errno: 101
     });
   }
@@ -129,14 +183,12 @@ app.post("/api/login", async (req, res) => {
   const collection = database.db("main").collection("accounts");
   //find user and compare passwords
   const user = await collection.findOne({ username: username });
-  if (user === null){
-    res.status(403).json(
-      {
-        message: "Bad Credentials",
-        error: "wrong username or password",
-        errno: 201
-      }
-    );
+  if (user === null) {
+    res.status(403).json({
+      message: "Bad Credentials",
+      error: "wrong username or password",
+      errno: 201
+    });
     return;
   }
   //compare hash values
@@ -172,30 +224,26 @@ app.post("/api/logout", (req, res) => {
 });
 
 //test
-app.post("/test", (req, res) => {
-  if(req.session.userId){
-    const user = atob(req.session.userId).split(":");
-    res.status(200).json({
-      message: "Authorized",
-      user: user[0],
-      timestamp: user[1],
-      data: []
-    });
-  }else{
-    res.status(401).json(
-      {
-        message: "Unauthorized",
-        error: "Session Expired or Invalid",
-        errno: 301
-      }
-    );
-  }
-})
+app.get("/api/session", requireAuth,  (req, res) => {
+console.log(req.session)
+});
+
+app.get("/api/profile", requireAuth, (req, res) => {
+
+});
 
 // Fallback-Handler für alle anderen Pfade
 app.use((req, res) => {
-  console.log(`${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}, status 404`);
-  res.status(404).json({message: "Path not Found", error: "The path requested by the client does not exist.", errno: 404});
+  console.log(
+    `${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}, status 404`
+  );
+  res
+    .status(404)
+    .json({
+      message: "Path not Found",
+      error: "The path requested by the client does not exist.",
+      errno: 404
+    });
 });
 
 var port = 8080;
