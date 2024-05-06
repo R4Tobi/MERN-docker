@@ -7,6 +7,7 @@ RUN npm install
 
 COPY ./backend/server.js /src/server.js
 COPY ./backend/packages /src/packages
+COPY ./backend/docs /src/docs
 
 EXPOSE 8080
 
