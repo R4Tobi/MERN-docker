@@ -9,7 +9,7 @@ class User {
   login(username, password) {
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost:8080/api/login";
+      const url = "http://localhost/api/login";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -60,7 +60,7 @@ class User {
           message: "Die Passwörter stimmen nicht überein"
         });
       }
-      const url = "http://localhost:8080/api/register";
+      const url = "http://localhost/api/register";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -111,7 +111,7 @@ class User {
   async checkAuth(){
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost:8080/api/session";
+      const url = "http://localhost/api/session";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -147,7 +147,7 @@ class User {
   getProfile(){
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost:8080/api/profile";
+      const url = "http://localhost/api/profile";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
