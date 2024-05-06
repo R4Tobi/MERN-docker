@@ -6,6 +6,7 @@ COPY ./backend/package-lock.json /src/package-lock.json
 RUN npm install
 
 COPY ./backend/server.js /src/server.js
+COPY ./backend/packages /src/packages
 
 EXPOSE 8080
 
