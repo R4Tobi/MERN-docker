@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Packages</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .package {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .package h2 {
+        margin-top: 0;
+      }
+
+      .description {
+        margin-bottom: 10px;
+      }
+
+      .requires {
+        margin-bottom: 10px;
+      }
+
+      .requires h3 {
+        margin-top: 0;
+      }
+
+      .constructor {
+        margin-bottom: 10px;
+      }
+
+      .constructor h3 {
+        margin-top: 0;
+      }
+
+      .methods {
+        margin-bottom: 10px;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      li {
+        margin: 20px 0;
+      }
+
+      code {
+        background-color: #1f2630;
+        padding: 8px 12px;
+        margin: 10px 20px 0 0;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+      }
+
+      pre {
+        background-color: #1f2630;
+        color: #e2e2e2;
+        padding: 8px 12px;
+        margin: 0;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border-bottom-left-radius: 4px;
+      }
+
+      code.border {
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border-bottom-left-radius: 4px;
+      }
+
+      a {
+        text-decoration: none;
+        color: #0099ff;
+      }
+
+      .param {
+        color: rgb(71, 129, 255);
+      }
+
+      .return {
+        color: rgb(195, 0, 255);
+      }
+      .method-name {
+        color: rgb(0, 192, 0);
+      }
+
+      .braces {
+        color: yellow;
+      }
+
+      .argument {
+        color: orange;
+      }
+
+      .keyword {
+        color: rgb(255, 0, 119);
+      }
+
+      #wrapper {
+        margin-left: 240px;
+        margin-top: 85px;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px;
+        height: 100%;
+        background-color: #f5f5f5;
+        padding: 20px;
+        overflow: auto;
+      }
+
+      .sidebar li {
+        list-style-type: none;
+        margin: 10px;
+      }
+
+      .sidebar a {
+        display: block;
+        color: black;
+        padding: 5px 10px;
+        text-decoration: none;
+      }
+
+      .sidebar a:hover {
+        background-color: #ddd;
+      }
+
+      .navbar {
+        position: fixed;
+        width: 100%;
+        top: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #1f2630;
+      }
+
+      .navbar-title {
+        margin-left: 250px;
+        color: #e2e2e2;
+        font-size: 22px;
+      }
+
+      .navbar-links {
+        margin-right: 40px;
+      }
+
+      .navbar-links a {
+        margin-left: 20px;
+        color: #e2e2e2;
+        text-decoration: none;
+      }
+
+      .navbar-links a:hover {
+        color: #7c7c7c;
+      }
+    </style>
+  </head>
+  <body>
+  <header class="navbar">
+    <h1 class="navbar-title">Packages</h1>
+    <nav class="navbar-links">
+      <a href="../api/">API Dokumentation</a>
+    </nav>
+  </header>
+    <aside class="sidebar">
+      <h3>Navigation</h3>
+      <ul>
+        <li><a href="#sessionhandler">SessionHandler</a></li>
+        <li><a href="#logger">Logger</a></li>
+      </ul>
+    </aside>
+    <div id="wrapper">
+      <div class="package" id="sessionhandler">
+        <h2>SessionHandler</h2>
+        <div class="description">
+          <p>
+            SessionHandler is a class that allows you to store and retrieve data
+            for a user across multiple pages. Uses a MongoDB to store Sessions.
+          </p>
+        </div>
+        <div class="requires">
+          <h3>Requires</h3>
+          <p>mongodb, <a href="#logger">Logger</a></p>
+        </div>
+        <div class="constructor">
+          <h3>Constructor</h3>
+          <code class="border">
+            <span class="keyword">new</span>
+            <span class="method-name">SessionHandler</span>
+            <span class="braces">(</span>
+            <span class="argument">mongoDBInstance</span>
+            <span class="braces">)</span>
+          </code>
+        </div>
+        <div class="methods">
+          <h3>Methods</h3>
+          <ul>
+            <li>
+              <code>
+                <span class="method-name">createSession</span>
+                <span class="braces">(</span>
+                <span class="argument">username</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> username: string - username of the user
+<span class="return">@return</span> void: creates a new session for specified User
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">checkSession</span>
+                <span class="braces">(</span>
+                <span class="argument">req, res, next</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> req:    express.js Request
+<span class="param">@param</span> res:    express.js Response
+<span class="param">@param</span> next:   express.js Next
+<span class="return">@return</span> void: calls next() if session is valid
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">destroySession</span>
+                <span class="braces">(</span>
+                <span class="argument">username</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> username: string - username of the user
+<span class="return">@return</span> void: destroys the session of the specified user
+            </pre>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="package" id="logger">
+        <h2>Logger</h2>
+        <div class="description">
+          <p>
+            Logger is a class that allows you to log messages to the console.
+          </p>
+        </div>
+        <div class="constructor">
+          <h3>Constructor</h3>
+          <code class="border">
+            <span class="keyword">new</span>
+            <span class="method-name">Logger</span>
+            <span class="braces">()</span>
+          </code>
+        </div>
+        <br />
+        <div class="construcor">
+          <code class="border">
+            <span class="keyword">new</span>
+            <span class="method-name">Logger</span>
+            <span class="braces">(</span>
+            <span class="argument">writeFile</span>
+            <span class="braces">)</span>
+          </code>
+          <pre>
+<span class="param">@param</span> writeFile: boolean - if true, logs will be written to a file
+        </pre>
+        </div>
+        <div class="methods">
+          <h3>Methods</h3>
+          <ul>
+            <li>
+              <code>
+                <span class="method-name">query</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs a query message
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">info</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs an info message
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">warn</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs a warning message
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">error</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs an error message 
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">session</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs a session message 
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">register</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log  
+<span class="return">@return</span> void: logs a session message 
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">dev</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs a register message 
+            </pre>
+            </li>
+            <li>
+              <code>
+                <span class="method-name">register</span>
+                <span class="braces">(</span>
+                <span class="argument">message</span>
+                <span class="braces">)</span>
+              </code>
+              <pre>
+<span class="param">@param</span> message: string - message to log
+<span class="return">@return</span> void: logs a development message 
+            </pre>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

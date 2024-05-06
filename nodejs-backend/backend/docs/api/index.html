@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>API Docs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .path {
+        padding: 10px;
+        margin: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .method {
+        background-color: #333;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+      }
+
+      .get {
+        background-color: #4caf50;
+      }
+
+      .post {
+        background-color: #2196f3;
+      }
+
+      .description {
+        margin-top: 10px;
+      }
+
+      .return {
+        margin-top: 10px;
+      }
+
+      #wrapper {
+        margin-left: 240px;
+        margin-top: 85px;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px;
+        height: 100%;
+        background-color: #f5f5f5;
+        padding: 20px;
+        overflow: auto;
+      }
+
+      .sidebar li {
+        list-style-type: none;
+        margin: 10px;
+      }
+
+      .sidebar a {
+        display: block;
+        color: black;
+        padding: 5px 10px;
+        text-decoration: none;
+      }
+
+      .sidebar a:hover {
+        background-color: #ddd;
+      }
+
+      .navbar {
+        position: fixed;
+        width: 100%;
+        top: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #1f2630;
+      }
+
+      .navbar-title {
+        margin-left: 250px;
+        color: #e2e2e2;
+        font-size: 22px;
+      }
+
+      .navbar-links {
+        margin-right: 40px;
+      }
+
+      .navbar-links a {
+        margin-left: 20px;
+        color: #e2e2e2;
+        text-decoration: none;
+      }
+
+      .navbar-links a:hover {
+        color: #7c7c7c;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="navbar">
+      <h1 class="navbar-title">API Dokumentation</h1>
+      <nav class="navbar-links">
+        <a href="../packages/">Package Dokumentation</a>
+      </nav>
+    </header>
+    <aside class="sidebar">
+      <h3>Navigation</h3>
+      <ul>
+        <li>
+            <a href="#health">/api/health</a>
+        </li>
+        <li>
+            <a href="#register">/api/register</a>
+        </li>
+        <li>
+            <a href="#login">/api/login</a>
+        </li>
+        <li>
+            <a href="#session">/api/session</a>
+        </li>
+        <li>
+            <a href="#profile">/api/profile</a>
+        </li>
+      </ul>
+    </aside>
+    <div id="wrapper">
+      <div class="path" id="health">
+        <div class="header">
+          <h2>/api/health</h2>
+          <span class="method get">GET</span>
+        </div>
+        <div class="description">
+          <p>Check if the API is running</p>
+        </div>
+        <div class="return">
+          <h4>Returns <code>JSON Object</code></h4>
+          <pre>
+{
+    success: true,
+    message: "Everything is working fine"
+}
+                </pre
+          >
+        </div>
+      </div>
+
+      <div class="path" id="register">
+        <div class="header">
+          <h2>/api/register</h2>
+          <span class="method post">POST</span>
+        </div>
+        <div class="description">
+          <p>
+            Register a new User. Creates a MongoDB Entry with the delivered
+            Attributes. The Password is stored in a Hash using bcrypt.
+          </p>
+        </div>
+        <div class="payload">
+          <h4>Payload <code>JSON Object</code></h4>
+          <pre>
+{
+    username: username,
+    fullName: fullName,
+    password: password,
+    password_c: control password
+}
+                </pre
+          >
+
+          <div class="return">
+            <h4>Returns <code>HTTP-Status + JSON Object</code></h4>
+            <pre>
+200 OK:             User created
+400 Bad Request:    invalid character in username
+409 Conflict:       username already exists
+406 Not Acceptable: passwords dont match or password/username/fullName too short
+
+                </pre
+            >
+            <pre>
+{
+    message: result 
+    error:   error message
+    errno:   error number
+}
+                </pre
+            >
+          </div>
+        </div>
+      </div>
+      <div class="path" id="login">
+        <div class="header">
+          <h2>/api/login</h2>
+          <span class="method post">POST</span>
+        </div>
+        <div class="description">
+          <p>
+            Log in a User. Checks if the User exists and the Password is
+            correct. Als Creates a Session, So the User can be identified.
+            <br />Store a cookie wih the value of the username an pass it with
+            every other request.
+          </p>
+        </div>
+        <div class="payload">
+          <h4>Payload <code>JSON Object</code></h4>
+          <pre>
+{
+    username: username,
+    password: password
+}
+                </pre
+          >
+        </div>
+        <div class="return">
+          <h4>Returns <code>HTTP-Status + JSON Object</code></h4>
+          <pre>
+200 OK:        User logged in
+403 Forbidden: User not found or password incorrect
+                </pre
+          >
+          <pre>
+{
+    message: result 
+    error:   error message
+    errno:   error number
+}
+                </pre
+          >
+        </div>
+      </div>
+
+      <div class="path" id="session">
+        <div class="header">
+          <h2>/api/session</h2>
+          <span class="method post">POST</span>
+        </div>
+        <div class="description">
+          <p>
+            Check if the User is logged in. If the User is logged in, you get a
+            200
+          </p>
+        </div>
+        <div class="payload">
+          <h4>Payload <code>JSON Object</code></h4>
+          <pre>
+{
+    username: username
+}
+                </pre
+          >
+        </div>
+        <div class="return">
+          <h4>Returns <code>HTTP-Status</code></h4>
+          <pre>
+200 OK:           Session for User exists.
+401 Unauthorized: No Session for User.
+                </pre
+          >
+        </div>
+      </div>
+      <div class="path" id="profile">
+        <div class="header">
+          <h2>/api/profile</h2>
+          <span class="method post">POST</span>
+        </div>
+        <div class="description">
+          <p>
+            Get the Profile of the User. Returns the Full Name of the User, the
+            username and th roles.
+          </p>
+        </div>
+        <div class="payload">
+          <h4>Payload <code>JSON Object</code></h4>
+          <pre>
+{
+    username: username
+}
+                </pre
+          >
+        </div>
+        <div class="return">
+          <h4>Returns <code>HTTP-Status</code></h4>
+          <pre>
+200 OK:           Profile of User
+401 Unauthorized: No Session for User.
+                </pre
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
