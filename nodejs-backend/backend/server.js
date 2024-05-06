@@ -1,23 +1,34 @@
-/*
+/**
  * Imports
  */
+
+// Express.js framework for building web applications
 var express = require("express");
-var session = require("express-session");
+
+// Middleware for enabling Cross-Origin Resource Sharing (CORS)
 var cors = require("cors");
+
+// Library for hashing passwords
 var bcrypt = require("bcrypt");
+
+// File system module for working with files
 var fs = require("fs");
+
+// HTTPS module for creating secure server connections
 var https = require("https");
 
+// MongoDB driver for Node.js
 const { MongoClient, ObjectId } = require("mongodb");
-const { UUID } = require("bson");
-const MongoDBStore = require('connect-mongodb-session')(session);
 
-/*
+// BSON library for working with Binary JSON (BSON) data
+const { UUID } = require("bson");
+
+/**
  * App
  */
 const app = express();
 
-//Middleware
+// Middleware
 app.use(express.json());
 
 const corsOptions = {
@@ -26,47 +37,59 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-/*
-*
-*  SESSION HANDLING
-*
-*/
-import Session from "./src/Sessions.js";
-const requireAuth = Sessions.requireAuth();
-const createSession = Sessions.createSession();
-const destroySession = Sessions.destroySession();
+/**
+ * Logging
+ */
 
-/*
-*
-*  LOGGING
-*
-*/
-import Logger from "./src/Logging.js";
+// Custom Logger class for logging requests
+const Logger = require("./packages/Logger.js");
 const logger = new Logger();
-//Log every incoming Query
+
+// Log every incoming Query
 app.use(function (req, res, next) {
   logger.query(`${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}`);
   next();
 });
 
-/*
-* Database 
-*/
+/**
+ * Database
+ */
+
+// MongoDB connection URI
 const MONGODB_URI = "mongodb://root:password@mongodb:27017";
+
+// Create a new MongoClient instance
 var database = new MongoClient(MONGODB_URI, {
   pkFactory: { createPk: () => new UUID.toBinary() }
 });
+
+// Connect to the MongoDB instance
 database
   .connect()
   .then(() => logger.success("DB: Connected Successfully to MongoDB Instance"))
   .catch(() => logger.error("DB: Connection to MongoDB Instance failed"));
 
+/**
+ * Session Handling
+ */
 
-/*
-*
-*  GET REQUESTS (docs/health)
-*
-*/
+// Custom SessionHandler class for managing user sessions
+const SessionHandler = require("./packages/SessionHandler.js");
+const session = new SessionHandler(database);
+
+// Middleware for requiring authentication on certain routes
+const requireAuth = (req, res, next) => session.checkSession(req, res, next);
+
+/**
+ * GET REQUESTS (docs/health)
+ */
+
+/**
+ * Route for checking the health of the server
+ * @route GET /health
+ * @group Health
+ * @returns {object} 200 - Success response with a message
+ */
 app.get("/health", (req, res) => {
   res.json({
     success: true,
@@ -74,6 +97,12 @@ app.get("/health", (req, res) => {
   });
 });
 
+/**
+ * Route for checking the health of the API
+ * @route GET /api/health
+ * @group Health
+ * @returns {object} 200 - Success response with a message
+ */
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -81,12 +110,19 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-/*
-*
-*  API Calls
-*
-*/
-//register
+/**
+ * API Calls
+ */
+
+/**
+ * Route for user registration
+ * @route POST /api/register
+ * @group Authentication
+ * @param {object} req.body - The request body containing user registration data
+ * @returns {object} 200 - Success response with a message
+ * @returns {object} 400 - Bad Request response with an error message
+ * @returns {object} 409 - Conflict response with an error message
+ */
 app.post("/api/register", async (req, res) => {
   const data = req.body;
 
@@ -101,13 +137,13 @@ app.post("/api/register", async (req, res) => {
         errno: 103
       });
     }
-    //get the accounts collection of the mongodb database
+    // Get the accounts collection of the MongoDB database
     const collection = database.db("main").collection("accounts");
-    //hash password
+    // Hash password
     const saltRounds = 10;
     const salt = bcrypt.genSaltSync(saltRounds);
     const hash = bcrypt.hashSync(data.password, salt);
-    //insert new account into collection
+    // Insert new account into collection
     try {
       const result = await collection.insertOne({
         _id: data.username,
@@ -116,8 +152,8 @@ app.post("/api/register", async (req, res) => {
         fullName: data.fullName,
         role: ["user"]
       });
-      console.info(
-        `REGISTER: New Account added to MongoDB. ID: ${result.insertedId}`
+      console.register(
+        `New Account added to MongoDB. ID: ${result.insertedId}`
       );
       res.status(200).send(JSON.stringify({ message: "Success" }));
     } catch (e) {
@@ -152,14 +188,21 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-//login
+/**
+ * Route for user login
+ * @route POST /api/login
+ * @group Authentication
+ * @param {object} req.body - The request body containing user login data
+ * @returns {object} 200 - Success response with a message
+ * @returns {object} 403 - Forbidden response with an error message
+ */
 app.post("/api/login", async (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
-  //get the accounts collection of the mongodb database
+  // Get the accounts collection of the MongoDB database
   const collection = database.db("main").collection("accounts");
-  //find user and compare passwords
+  // Find user and compare passwords
   const user = await collection.findOne({ username: username });
   if (user === null) {
     res.status(403).json({
@@ -169,11 +212,12 @@ app.post("/api/login", async (req, res) => {
     });
     return;
   }
-  //compare hash values
+  // Compare hash values
   const result = bcrypt.compareSync(password, user.password);
   if (result === true) {
     try{
-      createSession(user);
+      session.createSession(user);
+      logger.session(`User ${username} logged in`);
     }catch(e){
       const errno = e.message.substring(0, 5);
       logger.error(errno)
@@ -195,27 +239,48 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-//logout
+/**
+ * Route for user logout
+ * @route POST /api/logout
+ * @group Authentication
+ * @param {object} req.body - The request body containing user data
+ * @returns {object} 200 - Success response with a message
+ */
 app.post("/api/logout", (req, res) => {
   // Destroy the session to log the user out
-  destroySession(req.body.username)
+  session.destroySession(req.body.username);
   // Send a success response
   res.json({ message: "Logged out successfully" });
 });
 
-//test
+/**
+ * Route for checking the validity of a user session
+ * @route POST /api/session
+ * @group Authentication
+ * @param {object} req.body - The request body containing user data
+ * @returns {object} 200 - Success response with a message
+ */
 app.post("/api/session", requireAuth,  (req, res) => {
   res.status(200).send("Session is valid.")
 });
 
+/**
+ * Route for retrieving user profile information
+ * @route POST /api/profile
+ * @group Authentication
+ * @param {object} req.body - The request body containing user data
+ * @returns {object} 200 - Success response with user profile data
+ */
 app.post("/api/profile", requireAuth, async (req, res) => {
   const user = await database.db("main").collection("accounts").findOne({username: req.body.username});
   res.status(200).send(user);
 });
 
-// Fallback-Handler für alle anderen Pfade
+/**
+ * Fallback-Handler for all other paths
+ */
 app.use((req, res) => {
-  console.info(
+  logger.warn(
     `${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}, status 404`
   );
   res
@@ -231,5 +296,5 @@ var port = 8080;
 var hostname = "0.0.0.0";
 
 app.listen(port, hostname, () => {
-  console.log(`Server running on port ${port}`);
+  logger.info(`Server running on port ${port}`);
 });
