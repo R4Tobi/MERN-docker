@@ -85,17 +85,11 @@ const requireAuth = (req, res, next) => session.checkSession(req, res, next);
  */
 
 /**
- * Route for checking the health of the server
- * @route GET /health
- * @group Health
- * @returns {object} 200 - Success response with a message
+ * Route for serving static files from the "docs" folder
+ * @route GET /docs/*
+ * @group Documentation
  */
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "Everything is working fine"
-  });
-});
+app.use("/api/docs/", express.static(__dirname + "/docs/"));
 
 /**
  * Route for checking the health of the API
