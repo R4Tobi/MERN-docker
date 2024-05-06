@@ -25,6 +25,8 @@ services:
       - 8080:8080
     volumes:
       - ./nodejs-backend/backend/server.js:/src/server.js
+      - ./nodejs-backend/backend/packages/:/src/packages/
+    restart: always
 
   vuejs-frontend:
     build: ./vuejs-frontend/
@@ -32,6 +34,7 @@ services:
       - 80:80
     volumes:
       - ./vuejs-frontend/vue/dist/:/usr/share/nginx/html/
+    restart: always
 
 volumes:
   dbdata:
