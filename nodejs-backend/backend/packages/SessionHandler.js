@@ -54,7 +54,20 @@ class SessionHandler {
       const errno = e.message.substring(0, 6);
       switch (errno) {
         case "E11000":
-          logger.warn("Duplicate Session E11000");
+          logger.info("Duplicate Session, Session gets renewed");
+          try {
+            await collection.updateOne(
+              { username: user.username },
+              {
+                $set: {
+                  expires: Date.now() + 30 * 60 * 1000
+                }
+              }
+            );
+            logger.session("Renewed Session for User " + user.username);
+          } catch (e) {
+            logger.error("Renewing Session failed");
+          }
           break;
       }
     }
