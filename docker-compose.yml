@@ -26,10 +26,12 @@ services:
     volumes:
       - ./nodejs-backend/backend/server.js:/src/server.js
       - ./nodejs-backend/backend/packages/:/src/packages/
+      - ./nodejs-backend/backend/docs/:/src/docs/
     restart: always
 
   vuejs-frontend:
     build: ./vuejs-frontend/
+    hostname: "frontend"
     ports:
       - 80:80
     volumes:
