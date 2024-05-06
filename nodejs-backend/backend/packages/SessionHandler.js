@@ -29,7 +29,8 @@ class SessionHandler {
           logger.session(`Session expired for User ${req.body.username}`);
           res.status(401).send("Session expired");
         } else if (session.username === req.body.username) {
-          logger.session(`User ${req.body.username} is authenticated`);
+          logger.session(`User ${req.body.username} is authenticated, Session is renewed`);
+          this.updateSession(req.body.username);
           next();
         }
       } catch (e) {
@@ -55,19 +56,7 @@ class SessionHandler {
       switch (errno) {
         case "E11000":
           logger.info("Duplicate Session, Session gets renewed");
-          try {
-            await collection.updateOne(
-              { username: user.username },
-              {
-                $set: {
-                  expires: Date.now() + 30 * 60 * 1000
-                }
-              }
-            );
-            logger.session("Renewed Session for User " + user.username);
-          } catch (e) {
-            logger.error("Renewing Session failed");
-          }
+          this.updateSession(user.username);
           break;
       }
     }
@@ -85,6 +74,25 @@ class SessionHandler {
       logger.error("removing session from " + username + " failed");
     }
   }
+
+  async updateSession(username) {
+    var database = this.database;
+    try {
+      database
+        .db("main")
+        .collection("sessions")
+        .updateOne(
+          { username: username },
+          {
+            $set: {
+              expires: Date.now() + 30 * 60 * 1000
+            }
+          }
+        );
+      } catch (e) {
+        logger.error("Renewing session for " + username + " failed");
+      }
+    }
 }
 
 module.exports = SessionHandler;
