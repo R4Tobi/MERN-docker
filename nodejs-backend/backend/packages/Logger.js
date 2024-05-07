@@ -1,5 +1,8 @@
 const fs = require("fs");
 
+/**
+ * Represents a logging utility.
+ */
 class Logging {
   //color Formatting
   neutral = "\x1b[0m";
@@ -14,9 +17,26 @@ class Logging {
   //local variables
   writeFile = false;
 
-  constructor() {}
   constructor(writeFile) {
     this.writeFile = writeFile;
+    fs.mkdir("./logs", { recursive: true }, (err) => {
+      if (err) throw err;
+    });
+    fs.writeFile("./logs/info.log", "", function (err) {
+      if (err) throw err;
+    });
+    fs.writeFile("./logs/warn.log", "", function (err) {
+      if (err) throw err;
+    });
+    fs.writeFile("./logs/error.log", "", function (err) {
+      if (err) throw err;
+    });
+    fs.writeFile("./logs/dev.log", "", function (err) {
+      if (err) throw err;
+    });
+    fs.writeFile("./logs/session.log", "", function (err) {
+      if (err) throw err;
+    });
   }
 
   getTimestamp(){
@@ -32,7 +52,7 @@ class Logging {
   };
 
   writeLog(message, filename){
-    fs.appendFile("../logs/" + filename, this.getTimestamp() + " " + message + "\n", function (err) {
+    fs.appendFile("./logs/" + filename, this.getTimestamp() + " " + message + "\n", function (err) {
       if (err) throw err;
     });
   };
