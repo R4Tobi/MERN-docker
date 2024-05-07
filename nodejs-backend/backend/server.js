@@ -40,10 +40,8 @@ app.use(cors(corsOptions));
 /**
  * Logging
  */
-
-// Custom Logger class for logging requests
 const Logger = require("./packages/Logger.js");
-const logger = new Logger();
+const logger = new Logger(true);
 
 // Log every incoming Query
 app.use(function (req, res, next) {
