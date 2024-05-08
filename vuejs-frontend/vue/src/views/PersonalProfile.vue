@@ -6,6 +6,7 @@
         <tr><td>Benutzername: </td><td>{{ this.profile.username }}</td></tr>
         <tr><td>Rollen:</td><td>{{ this.profile.roles }}</td></tr>
       </table>
+      <button @click="logout">Logout</button>
     </div>
 </template>
 
@@ -22,7 +23,8 @@ export default {
         fullName: null,
         username: null,
         roles: []
-      }
+      },
+      loggedIn: false
     }
   },
   methods: {
@@ -33,7 +35,7 @@ export default {
     checkAuth(){
       new User().checkAuth()
       .then(
-        (data) => {console.log(data)},
+        () => {this.loggedIn = true},
         () => {window.open("/#/home?message=sessionExpired", "_self")}
       );
     },
@@ -42,6 +44,10 @@ export default {
       .then(
         (data) => this.profile = data
       )
+    },
+    logout(){
+      new User().logout()
+      .then(window.open("/#/home?message=logoutSuccess", "_self"))
     }
   },
   mounted(){
