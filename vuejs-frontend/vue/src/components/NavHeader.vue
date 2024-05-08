@@ -22,14 +22,49 @@
     <div id="menu" class="right closed">
       <ul>
         <li><router-link to="/profile">Profil</router-link></li>
+        <li v-if="loggedIn"><router-link to="/home" @click="init(); logout();">Logout</router-link></li>
+        <li v-if="!loggedIn"><router-link to="/home" @click="init();">Login</router-link></li>
       </ul>
     </div>
   </div>
 </template>
 
 <script>
+import User from "@/scripts/User.js";
+import Cookie from "../scripts/Cookie.js";
+
 export default {
   name: "NavHeader",
+  data: () => {
+    return {
+      loggedIn: false,
+    };
+  },
+  methods: {
+    init() {
+      this.checkAuthCookie();
+    },
+    checkAuthCookie() {
+      const cookie = new Cookie().getCookie("sessionID");
+      if (cookie) {
+        this.loggedIn = true;
+      }
+    },
+    logout() {
+      new User().logout();
+      new Cookie().deleteCookie("sessionID");
+      this.loggedIn = false;
+    },
+  },
+  mounted() {
+    this.init();
+  },
+  watch: {
+    $route() {
+      this.checkAuthCookie();
+    },
+  },
+
 }
 
 
