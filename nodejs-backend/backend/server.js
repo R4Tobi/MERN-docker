@@ -144,10 +144,10 @@ app.post("/api/register", async (req, res) => {
         fullName: data.fullName,
         role: ["user"]
       });
-      console.register(
-        `New Account added to MongoDB. ID: ${result.insertedId}`
-      );
       res.status(200).send(JSON.stringify({ message: "Success" }));
+            console.register(
+              `New Account added to MongoDB. ID: ${result.insertedId}`
+            );
     } catch (e) {
       const errno = e.message.substring(0, 5);
       switch (errno) {
@@ -189,6 +189,8 @@ app.post("/api/register", async (req, res) => {
  * @returns {object} 403 - Forbidden response with an error message
  */
 app.post("/api/login", async (req, res) => {
+  let xRealIP = req.headers["x-real-ip"];
+  let xRemoteHost = req.headers["x-remote-host"];
   let username = req.body.username;
   let password = req.body.password;
 
@@ -207,8 +209,9 @@ app.post("/api/login", async (req, res) => {
   // Compare hash values
   const result = bcrypt.compareSync(password, user.password);
   if (result === true) {
+    const sessionID = btoa(xRealIP + "::::" + username);
     try{
-      session.createSession(user);
+      session.createSession(username, sessionID);
       logger.session(`User ${username} logged in`);
     }catch(e){
       const errno = e.message.substring(0, 5);
@@ -217,7 +220,8 @@ app.post("/api/login", async (req, res) => {
 
     res.status(200).json(
       {
-        message: "Success"
+        message: "Success",
+        sessionID: sessionID
       }
     );
   }else{

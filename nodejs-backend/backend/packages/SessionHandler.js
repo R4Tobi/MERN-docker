@@ -8,14 +8,14 @@ class SessionHandler {
 
   async checkSession(req, res, next) {
     var database = this.database;
-    if (!req.body.username) {
-      res.status(401).send("No Session can be retrieved, if no user is given.");
+    if (!req.body.sessionID) {
+      res.status(401).send("No Session can be retrieved, if no sessionID is given.");
     } else {
       try {
         const session = await database
           .db("main")
           .collection("sessions")
-          .findOne({ username: req.body.username });
+          .findOne({ _id: req.body.sessionID });
         if (session === null) {
           res
             .status(401)
@@ -25,10 +25,10 @@ class SessionHandler {
           await database
             .db("main")
             .collection("sessions")
-            .deleteOne({ username: session.username });
+            .deleteOne({ _id: req.body.sessionID });
           logger.session(`Session expired for User ${req.body.username}`);
           res.status(401).send("Session expired");
-        } else if (session.username === req.body.username) {
+        } else if (session._id === req.body.sessionID && atob(req.body.sessionID).split("::::")[0] === req.headers["x-real-ip"]) {
           logger.session(`User ${req.body.username} is authenticated, Session is renewed`);
           this.updateSession(req.body.username);
           next();
@@ -40,12 +40,12 @@ class SessionHandler {
     }
   }
 
-  async createSession(user) {
+  async createSession(user, sessionID) {
     var database = this.database;
     const collection = database.db("main").collection("sessions");
     try {
       await collection.insertOne({
-        _id: user.username,
+        _id: sessionID,
         username: user.username,
         roles: user.roles,
         expires: Date.now() + 30 * 60 * 1000
@@ -56,33 +56,33 @@ class SessionHandler {
       switch (errno) {
         case "E11000":
           logger.info("Duplicate Session, Session gets renewed");
-          this.updateSession(user.username);
+          this.updateSession(sessionID);
           break;
       }
     }
   }
 
-  async destroySession(username) {
+  async destroySession(sessionID) {
     var database = this.database;
     try {
       database
         .db("main")
         .collection("sessions")
-        .deleteOne({ username: username });
-      logger.session(`User ${req.body.username} logged out, Session destroyed`);
+        .deleteOne({ _id: sessionID });
+      logger.session(`User ${username} logged out, Session destroyed`);
     } catch (e) {
-      logger.error("removing session from " + username + " failed");
+      logger.error("removing session from " + atob(sessionID.split("::::")[2]) + " failed with " + e);
     }
   }
 
-  async updateSession(username) {
+  async updateSession(sessionID) {
     var database = this.database;
     try {
       database
         .db("main")
         .collection("sessions")
         .updateOne(
-          { username: username },
+          { _id: sessionID },
           {
             $set: {
               expires: Date.now() + 30 * 60 * 1000
@@ -90,7 +90,7 @@ class SessionHandler {
           }
         );
       } catch (e) {
-        logger.error("Renewing session for " + username + " failed");
+        logger.error("Renewing session for " + atob(sessionID.split("::::")[2]) + " failed with " + e);
       }
     }
 }
