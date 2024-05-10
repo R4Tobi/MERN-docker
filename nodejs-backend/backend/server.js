@@ -38,20 +38,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 /**
- * Logging
- */
-
-// Custom Logger class for logging requests
-const Logger = require("./packages/Logger.js");
-const logger = new Logger();
-
-// Log every incoming Query
-app.use(function (req, res, next) {
-  logger.query(`${req.method}: ${req.ip} ${req.hostname}, ${req.protocol}, ${req.path}`);
-  next();
-});
-
-/**
  * Database
  */
 
@@ -79,6 +65,24 @@ const session = new SessionHandler(database);
 
 // Middleware for requiring authentication on certain routes
 const requireAuth = (req, res, next) => session.checkSession(req, res, next);
+
+/**
+ * Logging and Monitoring
+ */
+
+// Custom Logger class for logging requests
+const Logger = require("./packages/Logger.js");
+const logger = new Logger();
+
+const Monitorer = require("./packages/Monitorer.js");
+const monitorer = new Monitorer(database, "main", "monitoring");
+
+// Log and monitor every incoming Query
+app.use(function (req, res, next) {
+  logger.query(`${req.method}: ${req.headers["x-real-ip"]} ${req.hostname}, ${req.protocol}, ${req.path}`);
+  monitorer.query(req.headers["x-real-ip"])
+  next();
+});
 
 /**
  * GET REQUESTS (docs/health)
