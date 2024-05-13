@@ -47,7 +47,7 @@ class SessionHandler {
       await collection.insertOne({
         _id: sessionID,
         username: user.username,
-        roles: user.roles,
+        roles: user.role,
         expires: Date.now() + 30 * 60 * 1000
       });
       logger.session("created new Session for User " + user.username);

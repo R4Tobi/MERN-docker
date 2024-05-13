@@ -217,7 +217,7 @@ app.post("/api/login", async (req, res) => {
   if (result === true) {
     const sessionID = btoa(xRealIP + "::::" + username);
     try{
-      session.createSession(username, sessionID);
+      session.createSession(user, sessionID);
       logger.session(`User ${username} logged in`);
     }catch(e){
       const errno = e.message.substring(0, 5);
@@ -250,7 +250,7 @@ app.post("/api/login", async (req, res) => {
  */
 app.post("/api/logout", (req, res) => {
   // Destroy the session to log the user out
-  session.destroySession(req.body.username);
+  session.destroySession(req.cookies.sessionID);
   // Send a success response
   res.json({ message: "Logged out successfully" });
 });
