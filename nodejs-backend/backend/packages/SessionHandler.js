@@ -1,11 +1,24 @@
-const Logger = require("./Logger.js");
+/**
+ * Represents a session handler for managing user sessions.
+ */
+import Logger from "./Logger.js";
 const logger = new Logger();
 
 class SessionHandler {
+  /**
+   * Creates a new instance of the SessionHandler class.
+   * @param {Object} database - The database object.
+   */
   constructor(database) {
     this.database = database;
   }
 
+  /**
+   * Checks if the session is valid and authenticated.
+   * @param {Object} req - The request object.
+   * @param {Object} res - The response object.
+   * @param {Function} next - The next middleware function.
+   */
   async checkSession(req, res, next) {
     var database = this.database;
     if (!req.body.sessionID) {
@@ -40,6 +53,11 @@ class SessionHandler {
     }
   }
 
+  /**
+   * Creates a new session for the user.
+   * @param {Object} user - The user object.
+   * @param {string} sessionID - The session ID.
+   */
   async createSession(user, sessionID) {
     var database = this.database;
     const collection = database.db("main").collection("sessions");
@@ -48,6 +66,9 @@ class SessionHandler {
         _id: sessionID,
         username: user.username,
         roles: user.role,
+        createdISO: new Date.now().toISOString(),
+        expiresISO: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        created: Date.now(),
         expires: Date.now() + 30 * 60 * 1000
       });
       logger.session("created new Session for User " + user.username);
@@ -55,13 +76,17 @@ class SessionHandler {
       const errno = e.message.substring(0, 6);
       switch (errno) {
         case "E11000":
-          logger.info("Duplicate Session, Session gets renewed");
+          logger.info("Duplicate Session, Session gets renewed" + new Date(Date.now() + 30 * 60 * 1000).toISOString());
           this.updateSession(sessionID);
           break;
       }
     }
   }
 
+  /**
+   * Destroys the session.
+   * @param {string} sessionID - The session ID.
+   */
   async destroySession(sessionID) {
     var database = this.database;
     try {
@@ -75,6 +100,10 @@ class SessionHandler {
     }
   }
 
+  /**
+   * Updates the session expiration time.
+   * @param {string} sessionID - The session ID.
+   */
   async updateSession(sessionID) {
     var database = this.database;
     try {
@@ -85,6 +114,7 @@ class SessionHandler {
           { _id: sessionID },
           {
             $set: {
+              expiresISO: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
               expires: Date.now() + 30 * 60 * 1000
             }
           }
@@ -95,4 +125,4 @@ class SessionHandler {
     }
 }
 
-module.exports = SessionHandler;
+export default SessionHandler;
