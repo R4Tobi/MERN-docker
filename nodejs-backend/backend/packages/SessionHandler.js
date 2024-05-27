@@ -53,6 +53,44 @@ class SessionHandler {
     }
   }
 
+  async checkAdmin(req, res, next) {
+    var database = this.database;
+    if (!req.body.sessionID) {
+      res.status(401).send("No Session can be retrieved, if no sessionID is given.");
+    } else {
+      try {
+        const session = await database
+          .db("main")
+          .collection("sessions")
+          .findOne({ _id: req.body.sessionID });
+        if (session === null) {
+          res
+            .status(401)
+            .send("No Session found for User " + req.body.username);
+          logger.session(`No Session found for User ${req.body.username}`);
+        } else if (session.expires <= Date.now()) {
+          await database
+            .db("main")
+            .collection("sessions")
+            .deleteOne({ _id: req.body.sessionID });
+          logger.session(`Session expired for User ${req.body.username}`);
+          res.status(401).send("Session expired");
+        } else if (session._id === req.body.sessionID && atob(req.body.sessionID).split("::::")[0] === req.headers["x-real-ip"]) {
+          logger.session(`User ${req.body.username} is authenticated, Session is renewed`);
+          this.updateSession(req.body.username);
+          if (session.roles.includes("admin")) {
+            next();
+          }else{
+            res.status(403).send("User is not authorized to access this resource");
+          }
+        }
+      } catch (e) {
+        logger.session(`No Session found for User ${req.body.username}`);
+        res.status(401).send("No Session found for User " + req.body.username);
+      }
+    }
+  }
+
   /**
    * Creates a new session for the user.
    * @param {Object} user - The user object.

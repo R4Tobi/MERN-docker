@@ -65,6 +65,7 @@ const session = new SessionHandler(database);
 
 // Middleware for requiring authentication on certain routes
 const requireAuth = (req, res, next) => session.checkSession(req, res, next);
+const requireAdmin = (req, res, next) => session.checkAdmin(req, res, next);
 
 /**
  * Logging and Monitoring
@@ -76,6 +77,8 @@ const logger = new Logger();
 
 const Monitorer = require("./packages/Monitorer.js");
 const monitorer = new Monitorer(database, "main", "monitoring");
+
+const SystemInfo = require("./packages/SystemInfo.js");
 
 // Log and monitor every incoming Query
 app.use(function (req, res, next) {
@@ -276,6 +279,15 @@ app.post("/api/session", requireAuth,  (req, res) => {
 app.post("/api/profile", requireAuth, async (req, res) => {
   const user = await database.db("main").collection("accounts").findOne({username: req.body.username});
   res.status(200).send(user);
+});
+
+/**
+* Administrative Routes
+*/
+
+app.post("/systeminfo", requireAdmin, (req, res, next) => {
+  let SI = new SystemInfo();
+  req.send(SI.getConclusion());
 });
 
 /**
