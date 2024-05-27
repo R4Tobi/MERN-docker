@@ -20,27 +20,32 @@ class Logger {
    */
   constructor(writeFile) {
     this.writeFile = writeFile;
-    try {
-      mkdirSync("./logs", { recursive: true }, (err) => {
-        if (err) throw err;
-      });
-      writeFileSync("./logs/info.log", "", function (err) {
-        if (err) throw err;
-      });
-      writeFileSync("./logs/warn.log", "", function (err) {
-        if (err) throw err;
-      });
-      writeFileSync("./logs/error.log", "", function (err) {
-        if (err) throw err;
-      });
-      writeFileSync("./logs/dev.log", "", function (err) {
-        if (err) throw err;
-      });
-      writeFileSync("./logs/session.log", "", function (err) {
-        if (err) throw err;
-      });
-    } catch (e) {
-      new Logger(false).error("Error creating log files (maybe needs just a restart, otherwise check permissions for Using filesystem): " + e);
+    if (this.writeFile) {
+      try {
+        mkdirSync("./logs", { recursive: true }, (err) => {
+          if (err) throw err;
+        });
+        writeFileSync("./logs/info.log", "", function (err) {
+          if (err) throw err;
+        });
+        writeFileSync("./logs/warn.log", "", function (err) {
+          if (err) throw err;
+        });
+        writeFileSync("./logs/error.log", "", function (err) {
+          if (err) throw err;
+        });
+        writeFileSync("./logs/dev.log", "", function (err) {
+          if (err) throw err;
+        });
+        writeFileSync("./logs/session.log", "", function (err) {
+          if (err) throw err;
+        });
+      } catch (e) {
+        new Logger(false).error(
+          "creating log files failed (maybe needs just a restart, otherwise check permissions for Using filesystem) with " +
+            e
+        );
+      }
     }
   }
 
