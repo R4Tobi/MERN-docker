@@ -18,7 +18,7 @@ class Logger {
    * Creates an instance of Logger.
    * @param {boolean} writeFile - Indicates whether to write logs to files.
    */
-  constructor(writeFile) {
+  constructor(writeFile = true) {
     this.writeFile = writeFile;
     if (this.writeFile) {
       try {

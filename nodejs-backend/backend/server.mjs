@@ -3,25 +3,19 @@
  */
 
 // Express.js framework for building web applications
-var express = require("express");
+import express from "express";
 
 // Middleware for enabling Cross-Origin Resource Sharing (CORS)
-var cors = require("cors");
+import cors from "cors";
 
 // Library for hashing passwords
-var bcrypt = require("bcrypt");
-
-// File system module for working with files
-var fs = require("fs");
-
-// HTTPS module for creating secure server connections
-var https = require("https");
+import bcrypt from "bcrypt";
 
 // MongoDB driver for Node.js
-const { MongoClient, ObjectId } = require("mongodb");
+import { MongoClient, ObjectId } from "mongodb";
 
 // BSON library for working with Binary JSON (BSON) data
-const { UUID } = require("bson");
+import { UUID } from "bson";
 
 /**
  * App
@@ -60,7 +54,7 @@ database
  */
 
 // Custom SessionHandler class for managing user sessions
-const SessionHandler = require("./packages/SessionHandler.js");
+import SessionHandler from "./packages/SessionHandler.mjs";
 const session = new SessionHandler(database);
 
 // Middleware for requiring authentication on certain routes
@@ -72,13 +66,12 @@ const requireAdmin = (req, res, next) => session.checkAdmin(req, res, next);
  */
 
 // Custom Logger class for logging requests
-const Logger = require("./packages/Logger.js");
-const logger = new Logger();
+import Logger from "./packages/Logger.mjs";
+const logger = new Logger(true);
 
-const Monitorer = require("./packages/Monitorer.js");
+import Monitorer from "./packages/Monitorer.js";
+import path from "path";
 const monitorer = new Monitorer(database, "main", "monitoring");
-
-const SystemInfo = require("./packages/SystemInfo.js");
 
 // Log and monitor every incoming Query
 app.use(function (req, res, next) {
@@ -96,7 +89,8 @@ app.use(function (req, res, next) {
  * @route GET /docs/*
  * @group Documentation
  */
-app.use("/api/docs/", express.static(__dirname + "/docs/"));
+// Route for serving static files from the "docs" folder
+app.use("/api/docs/", express.static(path.join(path.resolve(), "docs")));
 
 /**
  * Route for checking the health of the API

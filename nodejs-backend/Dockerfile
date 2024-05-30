@@ -5,12 +5,14 @@ COPY ./backend/package.json /src/package.json
 COPY ./backend/package-lock.json /src/package-lock.json
 RUN npm install
 
-COPY ./backend/server.js /src/server.js
+COPY ./backend/server.mjs /src/server.mjs
 COPY ./backend/packages /src/packages
 COPY ./backend/docs /src/docs
 
 EXPOSE 8080
 
-CMD ["node", "server.js"]
+USER root
+
+CMD ["node", "server.mjs"]
 
 HEALTHCHECK CMD curl --fail http://localhost:8080/health || exit 1

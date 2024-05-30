@@ -1,7 +1,7 @@
 /**
  * Represents a session handler for managing user sessions.
  */
-import Logger from "./Logger.js";
+import Logger from "./Logger.mjs";
 const logger = new Logger();
 
 class SessionHandler {
@@ -11,6 +11,7 @@ class SessionHandler {
    */
   constructor(database) {
     this.database = database;
+    logger.dev(database.toString())
   }
 
   /**
@@ -117,6 +118,8 @@ class SessionHandler {
           logger.info("Duplicate Session, Session gets renewed" + new Date(Date.now() + 30 * 60 * 1000).toISOString());
           this.updateSession(sessionID);
           break;
+        default:
+          logger.error("Creating session for " + user.username + " failed with " + e);
       }
     }
   }
