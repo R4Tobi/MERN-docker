@@ -1,10 +1,12 @@
 <template>
     <div id="wrapper">
-      <h1>Persönliches Profil</h1>
+      <h1>Hallo {{ this.profile.fullName }}.</h1>
+      <h2>persönliche Daten:</h2>
       <table>
         <tr><td>Name: </td><td>{{ this.profile.fullName }}</td></tr>
         <tr><td>Benutzername: </td><td>{{ this.profile.username }}</td></tr>
-        <tr><td>Rollen:</td><td>{{ this.profile.roles }}</td></tr>
+        <tr><td>Rollen:</td><td><span v-for="role in this.profile.role" :key="role">{{ role }}, </span></td></tr>
+        <tr><td>Session:</td><td>gültig bis: {{ this.sessionValidUntil }}</td></tr>
       </table>
       <button @click="logout">Logout</button>
     </div>
@@ -22,9 +24,10 @@ export default {
       profile: {
         fullName: null,
         username: null,
-        roles: []
+        role: []
       },
-      loggedIn: false
+      loggedIn: false,
+      sessionValidUntil: null
     }
   },
   methods: {
@@ -35,7 +38,10 @@ export default {
     checkAuth(){
       new User().checkAuth()
       .then(
-        () => {this.loggedIn = true},
+        (data) => {
+          this.loggedIn = true;
+          this.sessionValidUntil = new String(new Date(data.validUntil).getHours()).padStart(2, 0) + ":" + new String(new Date(data.validUntil).getMinutes()).padStart(2, 0) + ":" + new String(new Date(data.validUntil).getSeconds()).padStart(2, 0);
+        },
         () => {window.open("/#/home?message=sessionExpired", "_self")}
       );
     },

@@ -73,10 +73,15 @@ import Monitorer from "./packages/Monitorer.js";
 import path from "path";
 const monitorer = new Monitorer(database, "main", "monitoring");
 
-// Log and monitor every incoming Query
+// Log and monitor every incoming Query + update session on every request
 app.use(function (req, res, next) {
-  logger.query(`${req.method}: ${req.headers["x-real-ip"]} ${req.hostname}, ${req.protocol}, ${req.path}`);
+  logger.query(`${req.method}: ${req.headers["x-real-ip"]} -> ${req.hostname}, ${req.protocol}, ${req.path}`);
   monitorer.query(req.headers["x-real-ip"])
+  try {
+    if (req.body.sessionID) {
+      session.updateSession(req.body.sessionID);
+    }
+  } catch (e) { }
   next();
 });
 
@@ -245,9 +250,9 @@ app.post("/api/login", async (req, res) => {
  * @param {object} req.body - The request body containing user data
  * @returns {object} 200 - Success response with a message
  */
-app.post("/api/logout", (req, res) => {
+app.post("/api/logout", requireAuth, (req, res) => {
   // Destroy the session to log the user out
-  session.destroySession(req.cookies.sessionID);
+  session.destroySession(req.body.sessionID);
   // Send a success response
   res.json({ message: "Logged out successfully" });
 });
@@ -259,8 +264,12 @@ app.post("/api/logout", (req, res) => {
  * @param {object} req.body - The request body containing user data
  * @returns {object} 200 - Success response with a message
  */
-app.post("/api/session", requireAuth,  (req, res) => {
-  res.status(200).send("Session is valid.")
+app.post("/api/session", requireAuth, async (req, res) => {
+  const session = await database.db("main").collection("sessions").findOne({_id: req.body.sessionID});
+  res.status(200).json({
+    message: "Session is valid",
+    validUntil: session.expires,
+  });
 });
 
 /**

@@ -175,7 +175,8 @@ class User {
           if (this.status === 200) {
             resolve({
               type: "erfolg",
-              message: "Sitzung ist gültig"
+              message: "Sitzung ist gültig",
+              validUntil: JSON.parse(this.response).validUntil
             });
           } else if(this.status === 401){
             reject({

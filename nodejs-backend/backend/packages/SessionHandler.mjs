@@ -1,9 +1,10 @@
-/**
- * Represents a session handler for managing user sessions.
- */
+
 import Logger from "./Logger.mjs";
 const logger = new Logger();
 
+/**
+ * Represents a session handler for managing user sessions.
+ */
 class SessionHandler {
   /**
    * Creates a new instance of the SessionHandler class.
@@ -11,7 +12,6 @@ class SessionHandler {
    */
   constructor(database) {
     this.database = database;
-    logger.dev(database.toString())
   }
 
   /**
@@ -105,8 +105,8 @@ class SessionHandler {
         _id: sessionID,
         username: user.username,
         roles: user.role,
-        createdISO: new Date.now().toISOString(),
-        expiresISO: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        //createdISO: new Date.now().toISOString(),
+        //expiresISO: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
         created: Date.now(),
         expires: Date.now() + 30 * 60 * 1000
       });
@@ -130,14 +130,17 @@ class SessionHandler {
    */
   async destroySession(sessionID) {
     var database = this.database;
+    logger.dev(sessionID)
     try {
       database
         .db("main")
         .collection("sessions")
         .deleteOne({ _id: sessionID });
-      logger.session(`User ${username} logged out, Session destroyed`);
+      logger.session(
+        `User ${atob(sessionID).split("::::")[1]} logged out, Session destroyed`
+      );
     } catch (e) {
-      logger.error("removing session from " + atob(sessionID.split("::::")[2]) + " failed with " + e);
+      logger.error("removing session from " + atob(sessionID).split("::::")[1] + " failed with " + e);
     }
   }
 
@@ -155,13 +158,13 @@ class SessionHandler {
           { _id: sessionID },
           {
             $set: {
-              expiresISO: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+              //expiresISO: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
               expires: Date.now() + 30 * 60 * 1000
             }
           }
         );
       } catch (e) {
-        logger.error("Renewing session for " + atob(sessionID.split("::::")[2]) + " failed with " + e);
+        logger.error("Renewing session for " + atob(sessionID).split("::::")[1] + " failed with " + e);
       }
     }
 }
