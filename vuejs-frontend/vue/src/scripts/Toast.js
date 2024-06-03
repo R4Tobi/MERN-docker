@@ -1,13 +1,26 @@
 class Toast {
-  constructor(data) {
-    this.data = data;
+  constructor() {
+    this.queue = [];
+    this.isProcessing = false;
   }
+
   showAlert(data) {
+    this.queue.push(data);
+    if (!this.isProcessing) {
+      this.processQueue();
+    }
+  }
+
+  processQueue() {
+    if (this.queue.length === 0) {
+      this.isProcessing = false;
+      return;
+    }
+
+    this.isProcessing = true;
+    const data = this.queue.shift();
     let { type, message } = data;
-    let autoClose;
-    data.autoClose === undefined
-      ? (autoClose = 5000)
-      : (autoClose = data.autoClose);
+    let autoClose = data.autoClose === undefined ? 5000 : data.autoClose;
 
     let toastContainer = document.createElement("div");
     toastContainer.classList.add("toast-container");
@@ -38,15 +51,18 @@ class Toast {
       if (typeof isAlert != "undefined" && isAlert != null)
         isAlert.classList.remove("slide-in");
       setTimeout(() => {
-        document.querySelector(".inAlert").remove();
+        var currentAlert = document.querySelector(".inAlert");
+        if (currentAlert) currentAlert.remove();
         this.removeToast();
+        this.processQueue();
       }, 100);
     }, autoClose);
   }
-  removeToast = () => {
+
+  removeToast() {
     var container = document.querySelector(".toast-container");
     if (!container.hasChildNodes()) container.remove();
-  };
+  }
 }
 
 export default Toast;
