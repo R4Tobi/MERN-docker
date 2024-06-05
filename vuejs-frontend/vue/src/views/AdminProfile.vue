@@ -8,16 +8,25 @@
         <tr><td>Rollen:</td><td><span v-for="role in this.profile.role" :key="role">{{ role }}, </span></td></tr>
         <tr><td>Session:</td><td>gültig bis: {{ this.sessionValidUntil }}</td></tr>
       </table>
+      <h2>Systeminformationen</h2>
+      <table>
+        
+      </table>
+      <h2>Auslastung und Temperaturen (Live)</h2>
+      <table>
+
+      </table>
       <button @click="logout">Logout</button>
     </div>
 </template>
 
 <script>
 import User from "../scripts/User.js";
+import Cookie from "../scripts/Cookie.js";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
-  name: 'PersonalProfile',
+  name: 'AdminProfile',
   data: () => {
     return {
       count: 0,
@@ -34,6 +43,7 @@ export default {
     init(){
       this.checkAuth();
       this.getProfile();
+      this.getSystemInfo();
     },
     checkAuth(){
       new User().checkAuth()
@@ -50,11 +60,28 @@ export default {
       .then(
         (data) => {
           this.profile = data;
-          if(data.role.includes("admin")){
-            this.$router.push("/admin");
-          }
         }
       )
+    },
+    getSystemInfo(){
+        const httpRequest = new XMLHttpRequest();
+        httpRequest.open("POST", "/api/systeminfo", true);
+        httpRequest.setRequestHeader(
+            "Content-Type",
+            "application/json;charset=UTF-8"
+        );
+        httpRequest.send(JSON.stringify({
+            sessionID: new Cookie().getCookie("sessionID")
+        }));
+        httpRequest.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                if (this.status === 200) {
+                    const data = JSON.parse(this.responseText);
+                    console.log(data);
+                }
+            }
+        }
+        //setTimeout(this.getSystemInfo(), 1000);
     },
     logout(){
       new User().logout()

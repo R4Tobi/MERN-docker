@@ -17,6 +17,7 @@ import { MongoClient, ObjectId } from "mongodb";
 // BSON library for working with Binary JSON (BSON) data
 import { UUID } from "bson";
 
+import SystemInfo from './packages/SystemInfo.js';
 /**
  * App
  */
@@ -288,9 +289,9 @@ app.post("/api/profile", requireAuth, async (req, res) => {
 * Administrative Routes
 */
 
-app.post("/systeminfo", requireAdmin, (req, res, next) => {
+app.post("/api/systeminfo", requireAdmin, async (req, res, next) => {
   let SI = new SystemInfo();
-  req.send(SI.getConclusion());
+  res.json(await SI.getConclusion());
 });
 
 /**

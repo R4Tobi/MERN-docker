@@ -4,6 +4,7 @@ import PageNotFound from "../views/PageNotFound.vue"
 import Home from "../views/Home.vue"
 import Register from "../views/Register.vue";
 import PersonalProfile from "../views/PersonalProfile.vue";
+import AdminProfile from "../views/AdminProfile.vue";
 
 const routes = [
   {
@@ -28,6 +29,11 @@ const routes = [
     path: "/profile",
     name: "PersonalProfile",
     component: PersonalProfile
+  },
+  {
+    path: "/admin",
+    name: "Admin",
+    component: AdminProfile
   },
   {
     path: "/404",
