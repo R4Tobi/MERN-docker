@@ -6,11 +6,17 @@ class User {
     this.password = password;
   }
 
+  getHostname(){
+    return this.window.location.hostname;
+  }
+
   login(username, password) {
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost/api/login";
+      const url = "http://" + this.getHostname() + "/api/login";
       const httpRequest = new XMLHttpRequest();
+
+      console.log("login");
 
       httpRequest.open("POST", url);
       httpRequest.setRequestHeader(
@@ -30,6 +36,7 @@ class User {
         if (this.readyState === 4) {
           if (this.status === 200) {
             new Cookie().setCookie("username", username, Date.now() + 30*60*1000);
+            console.log(JSON.parse(this.response).sessionID);
             new Cookie().setCookie("sessionID", JSON.parse(this.response).sessionID, Date.now() + 30*60*1000);
             resolve({ 
               type: "erfolg", 
@@ -55,7 +62,7 @@ class User {
   logout(){
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost/api/logout";
+      const url = "http://" + this.getHostname() + "/api/logout";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -102,7 +109,7 @@ class User {
           message: "Die Passwörter stimmen nicht überein"
         });
       }
-      const url = "http://localhost/api/register";
+      const url = "http://" + this.getHostname() + "/api/register";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -153,7 +160,7 @@ class User {
   async checkAuth(){
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost/api/session";
+      const url = "http://" + this.getHostname() + "/api/session";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -163,7 +170,7 @@ class User {
       );
       httpRequest.setRequestHeader(
         "Access-Control-Allow-Origin",
-        "http://localhost:8080"
+        "http://" + this.getHostname() + ":8080"
       );
 
       const user = new Cookie().getCookie("username");
@@ -191,7 +198,7 @@ class User {
   getProfile(){
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://localhost/api/profile";
+      const url = "http://" + this.getHostname() + "/api/profile";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -201,7 +208,7 @@ class User {
       );
       httpRequest.setRequestHeader(
         "Access-Control-Allow-Origin",
-        "http://localhost:8080"
+        "http://" + this.getHostname() + ":8080"
       );
 
       const user = new Cookie().getCookie("username");

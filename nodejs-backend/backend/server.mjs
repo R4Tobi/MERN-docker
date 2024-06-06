@@ -218,6 +218,7 @@ app.post("/api/login", async (req, res) => {
   // Compare hash values
   const result = bcrypt.compareSync(password, user.password);
   if (result === true) {
+    logger.dev(`${xRealIP}, ${username}`);
     const sessionID = btoa(xRealIP + "::::" + username);
     try{
       session.createSession(user, sessionID);
