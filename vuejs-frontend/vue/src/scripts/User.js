@@ -7,7 +7,7 @@ class User {
   }
 
   getHostname(){
-    return this.window.location.hostname;
+    return window.location.hostname;
   }
 
   login(username, password) {
