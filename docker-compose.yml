@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo:4.4
+    image: mongo:4.2
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -20,9 +20,9 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./nodejs-backend/backend/server.js:/src/server.js
-      - ./nodejs-backend/backend/packages/:/src/packages/
-      - ./nodejs-backend/backend/docs/:/src/docs/
+      - ./nodejs-backend/nodejs/server.mjs:/src/server.mjs
+      - ./nodejs-backend/nodejs/packages/:/src/packages/
+      - ./nodejs-backend/nodejs/docs/:/src/docs/
     restart: always
 
   vuejs-frontend:

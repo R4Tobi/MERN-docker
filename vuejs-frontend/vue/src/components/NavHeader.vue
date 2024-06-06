@@ -46,12 +46,13 @@ export default {
     },
     checkAuthCookie() {
       const cookie = new Cookie().getCookie("sessionID");
-      if (cookie) {
+      if (cookie !== "") {
         this.loggedIn = true;
       }
     },
     logout() {
       new User().logout();
+      console.log(new Cookie().getCookie("sessionID"));
       new Cookie().deleteCookie("sessionID");
       this.loggedIn = false;
     },
