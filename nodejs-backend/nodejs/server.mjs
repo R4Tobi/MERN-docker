@@ -55,7 +55,7 @@ database
  */
 
 // Custom SessionHandler class for managing user sessions
-import SessionHandler from "/packages/SessionHandler.mjs";
+import SessionHandler from "./packages/SessionHandler.mjs";
 const session = new SessionHandler(database);
 
 // Middleware for requiring authentication on certain routes

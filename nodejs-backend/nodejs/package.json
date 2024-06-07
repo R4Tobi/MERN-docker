@@ -2,7 +2,7 @@
   "name": "nodejs-backend",
   "version": "1.0.0",
   "description": "nodejs backend instance",
-  "main": "server.js",
+  "main": "server.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,7 +12,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-session": "^1.18.0",
-    "mongodb": "^6.5.0",
+    "mongodb": "4.0",
     "systeminformation": "^5.22.9"
   },
   "devDependencies": {
