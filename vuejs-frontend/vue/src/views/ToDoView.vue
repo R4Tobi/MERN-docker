@@ -14,17 +14,13 @@ export default {
   name: 'ToDoView',
   methods: {
     init(){
-      this.checkAuth();
+      this.getToDo();
     },
-    checkAuth(){
-      new User().checkAuth()
-      .then(
-        (data) => {
-          this.loggedIn = true;
-          this.sessionValidUntil = new String(new Date(data.validUntil).getHours()).padStart(2, 0) + ":" + new String(new Date(data.validUntil).getMinutes()).padStart(2, 0) + ":" + new String(new Date(data.validUntil).getSeconds()).padStart(2, 0);
-        },
-        () => {window.open("/#/home?message=sessionExpired", "_self")}
-      );
+    getToDo(){
+      var user = new User();
+      user.getToDo().then((response) => {
+        console.log(response);
+      });
     },
   },
   mounted(){

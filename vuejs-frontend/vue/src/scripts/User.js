@@ -229,6 +229,40 @@ class User {
       };
     });
   }
+  getToDo(){
+    return new Promise((resolve, reject) => {
+      // Return the Promise
+      const url = "http://" + this.getHostname() + "/api/getToDo";
+      const httpRequest = new XMLHttpRequest();
+
+      httpRequest.open("POST", url);
+      httpRequest.setRequestHeader(
+        "Content-Type",
+        "application/json;charset=UTF-8"
+      );
+      httpRequest.setRequestHeader(
+        "Access-Control-Allow-Origin",
+        "http://" + this.getHostname() + ":8080"
+      );
+
+      const user = new Cookie().getCookie("username");
+      const sessionID = new Cookie().getCookie("sessionID");
+      httpRequest.send(JSON.stringify({ sessionID: sessionID, username: user }));
+
+      httpRequest.onreadystatechange = function () {
+        if (this.readyState === 4) {
+          if (this.status === 200) {
+            resolve(JSON.parse(this.response));
+          } else if(this.status === 401){
+            reject({
+              type: "fehler",
+              message: "Sitzung ist abgelaufen"
+            }); // Reject the promise for error cases
+          }
+        }
+      };
+    });
+  }
 }
 
 export default User;

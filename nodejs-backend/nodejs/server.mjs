@@ -27,7 +27,7 @@ const app = express();
 app.use(express.json());
 
 const corsOptions = {
-  origin: "http://localhost", //(https://your-client-app.com)
+  origin: "http://localhost",
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -85,6 +85,12 @@ app.use(function (req, res, next) {
   } catch (e) { }
   next();
 });
+
+/*
+* ToDo Handling
+*/
+import ToDo from "./packages/ToDo.mjs";
+const todo = new ToDo(database);
 
 /**
  * GET REQUESTS (docs/health)
@@ -284,6 +290,14 @@ app.post("/api/session", requireAuth, async (req, res) => {
 app.post("/api/profile", requireAuth, async (req, res) => {
   const user = await database.db("main").collection("accounts").findOne({username: req.body.username});
   res.status(200).send(user);
+});
+
+app.post("/api/getToDo", requireAuth, async (req, res) => {
+  res.json(todo.get(req.body.username));
+});
+
+app.post("/api/createToDo", requireAuth, async (req, res) => {
+  res.send("not implemented yet");
 });
 
 /**

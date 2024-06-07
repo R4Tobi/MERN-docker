@@ -5,6 +5,7 @@ import Home from "../views/Home.vue"
 import Register from "../views/Register.vue";
 import PersonalProfile from "../views/PersonalProfile.vue";
 import AdminProfile from "../views/AdminProfile.vue";
+import ToDoView from '../views/ToDoView.vue';
 
 const routes = [
   {
@@ -29,6 +30,11 @@ const routes = [
     path: "/profile",
     name: "PersonalProfile",
     component: PersonalProfile
+  },
+  {
+    path: "/todo",
+    name: "ToDo",
+    component: ToDoView
   },
   {
     path: "/admin",
