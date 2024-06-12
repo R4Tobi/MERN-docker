@@ -20,7 +20,8 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./nodejs-backend/nodejs/server.mjs:/src/server.mjs
+      - ./nodejs-backend/nodejs/server.js:/src/server.js
+      - ./nodejs-backend/nodejs/.env:/src/.env
       - ./nodejs-backend/nodejs/packages/:/src/packages/
       - ./nodejs-backend/nodejs/docs/:/src/docs/
     restart: always

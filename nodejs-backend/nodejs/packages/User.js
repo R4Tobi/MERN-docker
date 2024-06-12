@@ -1,19 +1,25 @@
 const MongoClient = require("mongodb").MongoClient;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
 
 // Set up Global configuration access
-dotenv.config();
 
 /**
  * @classdesc Repräsentiert die Aktionen die mit Benutzerprozessen zusammenhängen. dazu zählen Authentifizierung, Autorisierung, Registrierung, Profildatenänderung und Passwortänderung.
  * @class
  */
-class User {
+module.exports = class User {
   constructor() {
-    this.database = new MongoClient(process.env.MONGODB_URI, {
-      pkFactory: { createPk: () => new UUID.toBinary() }
-    });
+    /*try {
+      const config = JSON.parse(fs.readFileSync("../config.json"));
+          const dbconn = `mongodb://${config.database.username}:${config.database.password}@${config.database.host}:${config.database.port}`;
+          this.database = new MongoClient(dbconn, {
+            pkFactory: { createPk: () => new UUID.toBinary() }
+          });
+    }catch(e){
+      console.log("config file not found");
+    }*/
   }
   /**
    * Registriert einen neuen Benutzer.
@@ -144,5 +150,3 @@ class User {
     next();
   }
 }
-
-export default User;
