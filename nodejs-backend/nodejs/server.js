@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
+var cookieParser = require('cookie-parser')
 
 /* 
 * import custom packages
@@ -12,6 +13,8 @@ const app = express();
 
 // Set up Global configuration access
 dotenv.config();
+
+let globalConfig = {};
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
@@ -32,6 +35,7 @@ app.listen(port, () => {
                 }
             };
             fs.writeFileSync("./config.json", JSON.stringify(config));
+            globalConfig = JSON.parse(fs.readFileSync("./config.json"));
         } else {
             console.log("config file invalid. please provide a valid .env file as mentioned in the documentation");
         }
@@ -46,19 +50,31 @@ app.listen(port, () => {
 * MIDDLEWARE
 */
 app.use(express.json());
+app.use(cookieParser());
 
 /*
 * Authentication and Authorization
 */
 
 //register
-app.post("/register", (req, res, next) => new User().register(req, res, next), (req, res) => {
+app.post("/api/register", (req, res, next) => new User(globalConfig).register(req, res, next), (req, res) => {
     //if next is called there went something wrong
-    req.statusCode(501).send("Something went wrong");
+    req.status(501).send("Something went wrong");
 });
 
 //login
-app.post("/login", (req, res, next) => new User().login(req, res, next), (req, res) => {
+app.post("/api/login", (req, res, next) => new User(globalConfig).login(req, res, next), (req, res) => {
     //if next is called there went something wrong
-    req.statusCode(501).send("Something went wrong");
+    res.status(501).send("Something went wrong");
+});
+
+//logout
+app.post("/api/logout", (req, res, next) => new User(globalConfig).logout(req, res, next), (req, res) => {
+    //if next is called there went something wrong
+    res.status(501).send("Something went wrong");
+});
+
+app.post("/api/profile", (req, res, next) => new User(globalConfig).auth(req, res, next), (req, res, next) => new User(globalConfig).profile(req, res, next), (req, res) => {
+    //if next is called there went something wrong
+    res.status(501).send("Something went wrong");
 });

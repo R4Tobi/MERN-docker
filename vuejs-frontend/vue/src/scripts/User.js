@@ -36,8 +36,6 @@ class User {
         if (this.readyState === 4) {
           if (this.status === 200) {
             new Cookie().setCookie("username", username, Date.now() + 30*60*1000);
-            console.log(JSON.parse(this.response).sessionID);
-            new Cookie().setCookie("sessionID", JSON.parse(this.response).sessionID, Date.now() + 30*60*1000);
             resolve({ 
               type: "erfolg", 
               message: "Anmeldung erfolgreich" 
@@ -71,9 +69,8 @@ class User {
         "application/json;charset=UTF-8"
       );
 
-      const sessionID = new Cookie().getCookie("sessionID");
       const user = new Cookie().getCookie("username");
-      httpRequest.send(JSON.stringify({ sessionID: sessionID, username: user }));
+      httpRequest.send(JSON.stringify({ username: user }));
 
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {
@@ -160,7 +157,7 @@ class User {
   async checkAuth(){
     return new Promise((resolve, reject) => {
       // Return the Promise
-      const url = "http://" + this.getHostname() + "/api/session";
+      const url = "http://" + this.getHostname() + "/api/auth";
       const httpRequest = new XMLHttpRequest();
 
       httpRequest.open("POST", url);
@@ -174,8 +171,8 @@ class User {
       );
 
       const user = new Cookie().getCookie("username");
-      const sessionID = new Cookie().getCookie("sessionID");
-      httpRequest.send(JSON.stringify({ sessionID: sessionID, username: user }));
+
+      httpRequest.send(JSON.stringify({ username: user }));
 
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {
@@ -212,8 +209,8 @@ class User {
       );
 
       const user = new Cookie().getCookie("username");
-      const sessionID = new Cookie().getCookie("sessionID");
-      httpRequest.send(JSON.stringify({ sessionID: sessionID, username: user }));
+
+      httpRequest.send(JSON.stringify({ username: user }));
 
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {
@@ -246,8 +243,8 @@ class User {
       );
 
       const user = new Cookie().getCookie("username");
-      const sessionID = new Cookie().getCookie("sessionID");
-      httpRequest.send(JSON.stringify({ sessionID: sessionID, username: user }));
+
+      httpRequest.send(JSON.stringify({ username: user }));
 
       httpRequest.onreadystatechange = function () {
         if (this.readyState === 4) {

@@ -6,20 +6,19 @@ const fs = require("fs");
 // Set up Global configuration access
 
 /**
- * @classdesc Repräsentiert die Aktionen die mit Benutzerprozessen zusammenhängen. dazu zählen Authentifizierung, Autorisierung, Registrierung, Profildatenänderung und Passwortänderung.
+ * @classdesc Repräsentiert die Aktionen die mit Benutzerprozessen zusammenhängen. Dazu zählen Authentifizierung, Autorisierung, Registrierung, Profildatenänderung und Passwortänderung.
  * @class
  */
 module.exports = class User {
-  constructor() {
-    /*try {
-      const config = JSON.parse(fs.readFileSync("../config.json"));
-          const dbconn = `mongodb://${config.database.username}:${config.database.password}@${config.database.host}:${config.database.port}`;
-          this.database = new MongoClient(dbconn, {
-            pkFactory: { createPk: () => new UUID.toBinary() }
-          });
+  constructor(config) {
+    try {
+        const dbconn = `mongodb://${config.database.username}:${config.database.password}@${config.database.host}:${config.database.port}`;
+        this.database = new MongoClient(dbconn, {
+          pkFactory: { createPk: () => new UUID.toBinary() }
+        });
     }catch(e){
-      console.log("config file not found");
-    }*/
+      console.log("config not found");
+    }
   }
   /**
    * Registriert einen neuen Benutzer.
@@ -97,7 +96,6 @@ module.exports = class User {
         errno: 101
       });
     }
-    next();
   }
   /**
    * Meldet einen Benutzer an.
@@ -112,7 +110,7 @@ module.exports = class User {
     let password = req.body.password;
 
     // Get the accounts collection of the MongoDB database
-    const collection = database.db("main").collection("accounts");
+    const collection = this.database.db("main").collection("accounts");
     // Find user and compare passwords
     const user = await collection.findOne({ username: username });
     if (user === null) {
@@ -129,14 +127,21 @@ module.exports = class User {
       let jwtSecretKey = process.env.JWT_SECRET_KEY;
       let data = {
         time: Date(),
-        userId: 12
+        userId: user._id,
+        username: user.username,
       };
 
       const token = jwt.sign(data, jwtSecretKey);
 
-      res.status(200).json({
-        message: "Success",
-        jwt: token
+      res.status(200).cookie( "jwt", token, {
+        domain: "localhost",
+        path: '/',
+        secure: true,
+        httpOnly: true,
+        sameSite: "lax",
+        expires: new Date(Date.now() + 1000 * 60 * 60)
+      }).json({
+        message: "Success"
       });
     } else {
       res.status(403).send(
@@ -147,6 +152,53 @@ module.exports = class User {
         })
       );
     }
-    next();
+  }
+
+  /**
+   * Meldet einen Benutzer ab.
+   * @param {Object} req - Das Anfrageobjekt.
+   * @param {Object} res - Das Antwortobjekt.
+   * @param {Function} next - Die nächste Middleware-Funktion.
+   */
+  async logout(req, res, next) {
+    res.clearCookie( "jwt", {
+      path: '/',
+    });
+  }
+
+  async auth(req, res, next) {
+    const token = req.cookies.jwt;
+    if (token) {
+      jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+        if (err) {
+          res.status(401).send("Unauthorized");
+        } else {
+          const newToken = jwt.sign(decoded, process.env.JWT_SECRET_KEY, {
+            expiresIn: "1h"
+          });
+          next();
+        }
+      });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
+  }
+
+  async profile(req, res, next) {
+    const token = req.cookies.jwt;
+    if (token) {
+      await jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, decoded) => {
+        if (err) {
+          res.status(401).send("Unauthorized");
+        } else {
+          const collection = this.database.db("main").collection("accounts");
+          const user = await collection.findOne({ _id: decoded.username });
+          console.log(user);
+          res.status(200).send(JSON.stringify(user));
+        }
+      });
+    } else {
+      res.status(401).send("Unauthorized");
+    }
   }
 }
