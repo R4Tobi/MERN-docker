@@ -126,7 +126,7 @@ module.exports = class User {
     if (result === true) {
       let jwtSecretKey = process.env.JWT_SECRET_KEY;
       let data = {
-        time: Date(),
+        time: Date.now() + 1000 * 60 * 60,
         userId: user._id,
         username: user.username,
       };
@@ -172,10 +172,9 @@ module.exports = class User {
       jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
         if (err) {
           res.status(401).send("Unauthorized");
+        } else if (jwt.decode(token).time < Date.now()) {
+          res.status(401).send("Unauthorized");
         } else {
-          const newToken = jwt.sign(decoded, process.env.JWT_SECRET_KEY, {
-            expiresIn: "1h"
-          });
           next();
         }
       });
@@ -192,7 +191,8 @@ module.exports = class User {
           res.status(401).send("Unauthorized");
         } else {
           const collection = this.database.db("main").collection("accounts");
-          const user = await collection.findOne({ _id: decoded.username });
+          let user = await collection.findOne({ _id: decoded.username });
+          user.expires = decoded.time;
           console.log(user);
           res.status(200).send(JSON.stringify(user));
         }

@@ -6,7 +6,7 @@
         <tr><td>Name: </td><td>{{ this.profile.fullName }}</td></tr>
         <tr><td>Benutzername: </td><td>{{ this.profile.username }}</td></tr>
         <tr><td>Rollen:</td><td><span v-for="role in this.profile.role" :key="role">{{ role }}, </span></td></tr>
-        <tr><td>Session:</td><td>gültig bis: {{ this.sessionValidUntil }}</td></tr>
+        <tr><td>Session:</td><td>gültig bis: {{ Date(this.profile.expires).toLocaleUpperCase }}</td></tr>
       </table>
       <button @click="logout">Logout</button>
     </div>
@@ -32,18 +32,7 @@ export default {
   },
   methods: {
     init(){
-      this.checkAuth();
       this.getProfile();
-    },
-    checkAuth(){
-      new User().checkAuth()
-      .then(
-        (data) => {
-          this.loggedIn = true;
-          this.sessionValidUntil = new String(new Date(data.validUntil).getHours()).padStart(2, 0) + ":" + new String(new Date(data.validUntil).getMinutes()).padStart(2, 0) + ":" + new String(new Date(data.validUntil).getSeconds()).padStart(2, 0);
-        },
-        () => {window.open("/#/home?message=sessionExpired", "_self")}
-      );
     },
     getProfile(){
       new User().getProfile()
