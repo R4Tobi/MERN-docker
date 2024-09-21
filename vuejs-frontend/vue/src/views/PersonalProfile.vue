@@ -5,7 +5,7 @@
       <table>
         <tr><td>Name: </td><td>{{ this.profile.fullName }}</td></tr>
         <tr><td>Benutzername: </td><td>{{ this.profile.username }}</td></tr>
-        <tr><td>Rollen:</td><td><span v-for="role in this.profile.role" :key="role">{{ role }}, </span></td></tr>
+        <tr><td>Rollen:</td><td>{{  profile.roleStr }}</td></tr>
         <tr><td>Session:</td><td>gültig bis: {{ Date(this.profile.expires).toLocaleUpperCase }}</td></tr>
       </table>
       <button @click="logout">Logout</button>
@@ -24,7 +24,8 @@ export default {
       profile: {
         fullName: null,
         username: null,
-        role: []
+        role: [],
+        roleStr: null,
       },
       loggedIn: false,
       sessionValidUntil: null
@@ -43,7 +44,12 @@ export default {
             this.$router.push("/admin");
           }
         }
-      )
+      );
+      this.profile.roleStr = '';
+      for(let i = 0; i < this.profile.role.length - 1; i++){
+        this.profile.roleStr += (this.profile.role[i] + ', ');
+      }
+      this.profile.roleStr += this.profile.role[this.profile.role.length]
     },
     logout(){
       new User().logout()
